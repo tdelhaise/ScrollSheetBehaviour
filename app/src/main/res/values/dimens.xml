@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="design_west_sheet_peek_width_min">150dp</dimen>
+    <dimen name="design_east_sheet_peek_width_min">150dp</dimen>
+    <dimen name="design_north_sheet_peek_height_min">150dp</dimen>
+    <dimen name="design_south_sheet_peek_height_min">150dp</dimen>
+</resources>

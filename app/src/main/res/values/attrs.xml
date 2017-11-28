@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WestSheetBehavior_Layout">
+        <!-- The height of the bottom sheet when it is collapsed. -->
+        <attr name="west_behavior_peekWidth" format="dimension">
+            <!-- Peek at the 16:9 ratio keyline of its parent -->
+            <enum name="auto" value="-1"/>
+        </attr>
+        <!-- Whether this bottom sheet can be hidden by dragging it further downwards -->
+        <attr name="west_behavior_hideable" format="boolean"/>
+        <!-- Skip the collapsed state once expanded; no effect unless it is hideable -->
+        <attr name="west_behavior_skipCollapsed" format="boolean"/>
+    </declare-styleable>
+
+    <declare-styleable name="EastSheetBehavior_Layout">
+        <!-- The height of the bottom sheet when it is collapsed. -->
+        <attr name="east_behavior_peekWidth" format="dimension">
+            <!-- Peek at the 16:9 ratio keyline of its parent -->
+            <enum name="auto" value="-1"/>
+        </attr>
+        <!-- Whether this bottom sheet can be hidden by dragging it further downwards -->
+        <attr name="east_behavior_hideable" format="boolean"/>
+        <!-- Skip the collapsed state once expanded; no effect unless it is hideable -->
+        <attr name="east_behavior_skipCollapsed" format="boolean"/>
+    </declare-styleable>
+
+    <declare-styleable name="NorthSheetBehavior_Layout">
+        <!-- The height of the bottom sheet when it is collapsed. -->
+        <attr name="north_behavior_peekHeight" format="dimension">
+            <!-- Peek at the 16:9 ratio keyline of its parent -->
+            <enum name="auto" value="-1"/>
+        </attr>
+        <!-- Whether this bottom sheet can be hidden by dragging it further downwards -->
+        <attr name="north_behavior_hideable" format="boolean"/>
+        <!-- Skip the collapsed state once expanded; no effect unless it is hideable -->
+        <attr name="north_behavior_skipCollapsed" format="boolean"/>
+    </declare-styleable>
+    <declare-styleable name="SouthSheetBehavior_Layout">
+        <!-- The height of the bottom sheet when it is collapsed. -->
+        <attr name="south_behavior_peekHeight" format="dimension">
+            <!-- Peek at the 16:9 ratio keyline of its parent -->
+            <enum name="auto" value="-1"/>
+        </attr>
+        <!-- Whether this bottom sheet can be hidden by dragging it further downwards -->
+        <attr name="south_behavior_hideable" format="boolean"/>
+        <!-- Skip the collapsed state once expanded; no effect unless it is hideable -->
+        <attr name="south_behavior_skipCollapsed" format="boolean"/>
+    </declare-styleable>
+</resources>
