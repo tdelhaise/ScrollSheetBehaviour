@@ -53,6 +53,40 @@
         </LinearLayout>
     </FrameLayout>
 
+    <FrameLayout
+        android:id="@+id/east_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorBackgroundEastSheet"
+        android:elevation="6dp"
+        custom:east_behavior_hideable="true"
+        custom:east_behavior_peekWidth="150dp"
+        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.EastSheetBehavior"
+        tools:visibility="visible">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/north_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorBackgroundNorthSheet"
+        android:elevation="8dp"
+        custom:north_behavior_hideable="true"
+        custom:north_behavior_peekHeight="150dp"
+        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.NorthSheetBehavior"
+        tools:visibility="visible">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+        </LinearLayout>
+    </FrameLayout>
+
 
 
 </android.support.design.widget.CoordinatorLayout>

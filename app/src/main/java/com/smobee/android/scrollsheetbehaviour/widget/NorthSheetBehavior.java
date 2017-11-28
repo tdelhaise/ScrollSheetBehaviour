@@ -1,9 +1,5 @@
 package com.smobee.android.scrollsheetbehaviour.widget;
 
-/**
- * Created by thierry on 28/11/2017.
- */
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
@@ -36,38 +32,44 @@ import java.lang.ref.WeakReference;
 import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 /**
- * An interaction behavior plugin for a child view of {@link CoordinatorLayout} to make it work as
- * a bottom sheet.
+ * Created by thierry on 28/11/2017.
  */
-public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavior<V>
+
+
+/**
+ * An interaction behavior plugin for a child view of {@link CoordinatorLayout} to make it work as
+ * a top sheet.
+ */
+public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavior<V>
 {
     
-    private static final String LOG_TAG = "SSB";
+    private static final String LOG_TAG = "NSB";
+    
     /**
      * Callback for monitoring events about bottom sheets.
      */
-    public abstract static class SouthSheetCallback {
+    public abstract static class NorthSheetCallback {
         
         /**
-         * Called when the bottom sheet changes its state.
+         * Called when the top sheet changes its state.
          *
-         * @param bottomSheet The bottom sheet view.
+         * @param topSheet The top sheet view.
          * @param newState    The new state. This will be one of {@link #STATE_DRAGGING},
          *                    {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
          *                    {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
          */
-        public abstract void onStateChanged(@NonNull View bottomSheet, @android.support.design.widget.BottomSheetBehavior.State int newState);
+        public abstract void onStateChanged(@NonNull View topSheet, @State int newState);
         
         /**
-         * Called when the bottom sheet is being dragged.
+         * Called when the top sheet is being dragged.
          *
-         * @param bottomSheet The bottom sheet view.
-         * @param slideOffset The new offset of this bottom sheet within [-1,1] range. Offset
+         * @param topSheet The top sheet view.
+         * @param slideOffset The new offset of this top sheet within [-1,1] range. Offset
          *                    increases as this bottom sheet is moving upward. From 0 to 1 the sheet
          *                    is between collapsed and expanded states and from -1 to 0 it is
          *                    between hidden and collapsed states.
          */
-        public abstract void onSlide(@NonNull View bottomSheet, float slideOffset);
+        public abstract void onSlide(@NonNull View topSheet, float slideOffset);
     }
     
     /**
@@ -129,7 +131,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     
     private boolean mSkipCollapsed;
     
-    @SouthSheetBehavior.State
+    @State
     int mState = STATE_COLLAPSED;
     
     ViewDragHelper mViewDragHelper;
@@ -146,7 +148,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     
     WeakReference<View> mNestedScrollingChildRef;
     
-    private SouthSheetCallback mCallback;
+    private NorthSheetCallback mCallback;
     
     private VelocityTracker mVelocityTracker;
     
@@ -157,33 +159,33 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     boolean mTouchingScrollingChild;
     
     /**
-     * Default constructor for instantiating BottomSheetBehaviors.
+     * Default constructor for instantiating NorthSheetBehavior.
      */
-    public SouthSheetBehavior()
+    public NorthSheetBehavior()
     {
     }
     
     /**
-     * Default constructor for inflating BottomSheetBehaviors from layout.
+     * Default constructor for inflating NorthSheetBehavior from layout.
      *
      * @param context The {@link Context}.
      * @param attrs   The {@link AttributeSet}.
      */
-    public SouthSheetBehavior(Context context, AttributeSet attrs)
+    public NorthSheetBehavior(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SouthSheetBehavior_Layout);
-        TypedValue value = a.peekValue(R.styleable.SouthSheetBehavior_Layout_south_behavior_peekHeight);
+        TypedArray a     = context.obtainStyledAttributes(attrs, R.styleable.NorthSheetBehavior_Layout);
+        TypedValue value = a.peekValue(R.styleable.NorthSheetBehavior_Layout_north_behavior_peekHeight);
         if (value != null && value.data == PEEK_HEIGHT_AUTO)
         {
             setPeekHeight(value.data);
         }
         else
         {
-            setPeekHeight(a.getDimensionPixelSize(R.styleable.SouthSheetBehavior_Layout_south_behavior_peekHeight, PEEK_HEIGHT_AUTO));
+            setPeekHeight(a.getDimensionPixelSize(R.styleable.NorthSheetBehavior_Layout_north_behavior_peekHeight, PEEK_HEIGHT_AUTO));
         }
-        setHideable(a.getBoolean(R.styleable.SouthSheetBehavior_Layout_south_behavior_hideable, false));
-        setSkipCollapsed(a.getBoolean(R.styleable.SouthSheetBehavior_Layout_south_behavior_skipCollapsed, false));
+        setHideable(a.getBoolean(R.styleable.NorthSheetBehavior_Layout_north_behavior_hideable, false));
+        setSkipCollapsed(a.getBoolean(R.styleable.NorthSheetBehavior_Layout_north_behavior_skipCollapsed, false));
         a.recycle();
         ViewConfiguration configuration = ViewConfiguration.get(context);
         mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
@@ -219,7 +221,6 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             ViewCompat.setFitsSystemWindows(child, true);
         }
     
-    
         Log.d(LOG_TAG,"onLayoutChild BEFORE child top     [" + child.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE child bottom  [" + child.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE child left    [" + child.getLeft() + "]");
@@ -234,6 +235,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         Log.d(LOG_TAG,"onLayoutChild BEFORE parent right  [" + parent.getRight() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE parent width  [" + parent.getWidth() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE parent height [" + parent.getHeight() + "]");
+        
         
         int savedTop = child.getTop();
         // First let the parent lay it out
@@ -253,6 +255,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         Log.d(LOG_TAG,"onLayoutChild AFTER parent width    [" + parent.getWidth() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER parent height   [" + parent.getHeight() + "]");
         
+        
         // Offset the bottom sheet
         mParentHeight = parent.getHeight();
         int peekHeight;
@@ -260,7 +263,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             if (mPeekHeightMin == 0)
             {
-                mPeekHeightMin = parent.getResources().getDimensionPixelSize(R.dimen.design_south_sheet_peek_height_min);
+                mPeekHeightMin = parent.getResources().getDimensionPixelSize(R.dimen.design_north_sheet_peek_height_min);
             }
             peekHeight = Math.max(mPeekHeightMin, mParentHeight - parent.getWidth() * 9 / 16);
         }
@@ -494,7 +497,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         if (mViewDragHelper.smoothSlideViewTo(child, child.getLeft(), top))
         {
             setStateInternal(STATE_SETTLING);
-            ViewCompat.postOnAnimation(child, new SouthSheetBehavior.SettleRunnable(child, targetState));
+            ViewCompat.postOnAnimation(child, new SettleRunnable(child, targetState));
         }
         else
         {
@@ -608,7 +611,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
      *
      * @param callback The callback to notify when bottom sheet events occur.
      */
-    public void setSouthSheetCallback(SouthSheetBehavior.SouthSheetCallback callback)
+    public void setNorthSheetCallback(NorthSheetBehavior.NorthSheetCallback callback)
     {
         mCallback = callback;
     }
@@ -761,7 +764,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         if (mViewDragHelper.smoothSlideViewTo(child, child.getLeft(), top))
         {
             setStateInternal(STATE_SETTLING);
-            ViewCompat.postOnAnimation(child, new SouthSheetBehavior.SettleRunnable(child, state));
+            ViewCompat.postOnAnimation(child, new SettleRunnable(child, state));
         }
         else
         {
@@ -772,7 +775,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     private final ViewDragHelper.Callback mDragCallback = new ViewDragHelper.Callback()
     {
     
-        private static final String LOG_TAG_CALLBACK = "SSBCB";
+        private static final String LOG_TAG_CALLBACK = "NSBCB";
         
         @Override
         public boolean tryCaptureView(View child, int pointerId)
@@ -849,7 +852,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             if (mViewDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top))
             {
                 setStateInternal(STATE_SETTLING);
-                ViewCompat.postOnAnimation(releasedChild, new SouthSheetBehavior.SettleRunnable(releasedChild, targetState));
+                ViewCompat.postOnAnimation(releasedChild, new SettleRunnable(releasedChild, targetState));
             }
             else
             {
@@ -908,10 +911,10 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         
         private final View mView;
         
-        @SouthSheetBehavior.State
+        @State
         private final int mTargetState;
         
-        SettleRunnable(View view, @SouthSheetBehavior.State int targetState)
+        SettleRunnable(View view, @State int targetState)
         {
             mView = view;
             mTargetState = targetState;
@@ -933,7 +936,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     
     protected static class SavedState extends AbsSavedState
     {
-        @android.support.design.widget.BottomSheetBehavior.State
+        @State
         final int state;
         
         public SavedState(Parcel source)
@@ -948,7 +951,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             state = source.readInt();
         }
         
-        public SavedState(Parcelable superState, @SouthSheetBehavior.State int state)
+        public SavedState(Parcelable superState, @State int state)
         {
             super(superState);
             this.state = state;
@@ -984,13 +987,13 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     }
     
     /**
-     * A utility function to get the {@link android.support.design.widget.BottomSheetBehavior} associated with the {@code view}.
+     * A utility function to get the {@link NorthSheetBehavior} associated with the {@code view}.
      *
-     * @param view The {@link View} with {@link android.support.design.widget.BottomSheetBehavior}.
-     * @return The {@link android.support.design.widget.BottomSheetBehavior} associated with the {@code view}.
+     * @param view The {@link View} with {@link NorthSheetBehavior}.
+     * @return The {@link NorthSheetBehavior} associated with the {@code view}.
      */
     @SuppressWarnings("unchecked")
-    public static <V extends View> SouthSheetBehavior<V> from(V view)
+    public static <V extends View> NorthSheetBehavior<V> from(V view)
     {
         ViewGroup.LayoutParams params = view.getLayoutParams();
         if (!(params instanceof CoordinatorLayout.LayoutParams))
@@ -998,11 +1001,11 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             throw new IllegalArgumentException("The view is not a child of CoordinatorLayout");
         }
         CoordinatorLayout.Behavior behavior = ((CoordinatorLayout.LayoutParams) params).getBehavior();
-        if (!(behavior instanceof SouthSheetBehavior))
+        if (!(behavior instanceof NorthSheetBehavior))
         {
-            throw new IllegalArgumentException("The view is not associated with SouthSheetBehavior");
+            throw new IllegalArgumentException("The view is not associated with NorthSheetBehavior");
         }
-        return (SouthSheetBehavior<V>) behavior;
+        return (NorthSheetBehavior<V>) behavior;
     }
-    
 }
+

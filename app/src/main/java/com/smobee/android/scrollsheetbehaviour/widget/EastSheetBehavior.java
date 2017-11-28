@@ -32,36 +32,41 @@ import java.lang.ref.WeakReference;
 import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 /**
+ * Created by thierry on 28/11/2017.
+ */
+
+
+/**
  * Created by thierry on 23/11/2017.
  */
 
-public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavior<V>
+public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavior<V>
 {
     
-    private static final String LOG_TAG = "WSB";
+    private static final String LOG_TAG = "ESB";
     /**
      * Callback for monitoring events about bottom sheets.
      */
-    public abstract static class LeftSheetCallback {
+    public abstract static class EastSheetCallback {
         /**
-         * Called when the left sheet changes its state.
+         * Called when the right sheet changes its state.
          *
-         * @param leftSheet The left sheet view.
+         * @param eastSheet The right sheet view.
          * @param newState    The new state. This will be one of {@link #STATE_DRAGGING},
          *                    {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
          *                    {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
          */
-        public abstract void onStateChanged(@NonNull View leftSheet, @State int newState);
+        public abstract void onStateChanged(@NonNull View eastSheet, @State int newState);
         /**
-         * Called when the bottom sheet is being dragged.
+         * Called when the right sheet is being dragged.
          *
-         * @param leftSheet The left sheet view.
-         * @param slideOffset The new offset of this left sheet within [-1,1] range. Offset
-         *                    increases as this left sheet is moving rigth. From 0 to 1 the sheet
+         * @param eastSheet The right sheet view.
+         * @param slideOffset The new offset of this right sheet within [-1,1] range. Offset
+         *                    increases as this right sheet is moving left. From 0 to 1 the sheet
          *                    is between collapsed and expanded states and from -1 to 0 it is
          *                    between hidden and collapsed states.
          */
-        public abstract void onSlide(@NonNull View leftSheet, float slideOffset);
+        public abstract void onSlide(@NonNull View eastSheet, float slideOffset);
     }
     
     /**
@@ -117,7 +122,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     int                 mParentWidth;
     WeakReference<V>    mViewRef;
     WeakReference<View> mNestedScrollingChildRef;
-    private LeftSheetCallback mCallback;
+    private EastSheetCallback mCallback;
     private VelocityTracker   mVelocityTracker;
     int mActivePointerId;
     private int mInitialX;
@@ -127,7 +132,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     /**
      * Default constructor for instantiating BottomSheetBehaviors.
      */
-    public WestSheetBehavior()
+    public EastSheetBehavior()
     {
     }
     
@@ -137,14 +142,14 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
      * @param context The {@link Context}.
      * @param attrs   The {@link AttributeSet}.
      */
-    public WestSheetBehavior(Context context, AttributeSet attrs)
+    public EastSheetBehavior(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        Log.d(LOG_TAG,"WestSheetBehavior attributes [" + attrs + "]");
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.WestSheetBehavior_Layout);
-        Log.d(LOG_TAG,"WestSheetBehavior typedArray [" + a + "]");
-        TypedValue value = a.peekValue(R.styleable.WestSheetBehavior_Layout_west_behavior_peekWidth);
-        int peekWidth = 0;
+        Log.d(LOG_TAG,"EastSheetBehavior attributes [" + attrs + "]");
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.EastSheetBehavior_Layout);
+        Log.d(LOG_TAG,"EastSheetBehavior typedArray [" + a + "]");
+        TypedValue value     = a.peekValue(R.styleable.EastSheetBehavior_Layout_east_behavior_peekWidth);
+        int        peekWidth = 0;
         if (value != null && value.data == PEEK_WIDTH_AUTO)
         {
             peekWidth = value.data;
@@ -152,12 +157,12 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         }
         else
         {
-            peekWidth = a.getDimensionPixelSize(R.styleable.WestSheetBehavior_Layout_west_behavior_peekWidth, PEEK_WIDTH_AUTO);
+            peekWidth = a.getDimensionPixelSize(R.styleable.EastSheetBehavior_Layout_east_behavior_peekWidth, PEEK_WIDTH_AUTO);
             setPeekWidth(peekWidth);
         }
-        boolean hideable = a.getBoolean(R.styleable.WestSheetBehavior_Layout_west_behavior_hideable, false);
+        boolean hideable = a.getBoolean(R.styleable.EastSheetBehavior_Layout_east_behavior_hideable, false);
         setHideable(hideable);
-        boolean skipCollapsed = a.getBoolean(R.styleable.WestSheetBehavior_Layout_west_behavior_skipCollapsed,false);
+        boolean skipCollapsed = a.getBoolean(R.styleable.EastSheetBehavior_Layout_east_behavior_skipCollapsed,false);
         setSkipCollapsed(skipCollapsed);
         a.recycle();
         ViewConfiguration configuration = ViewConfiguration.get(context);
@@ -178,9 +183,12 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         SavedState ss = (SavedState) state;
         super.onRestoreInstanceState(parent, child, ss.getSuperState());
         // Intermediate states are restored as collapsed state
-        if (ss.state == STATE_DRAGGING || ss.state == STATE_SETTLING) {
+        if (ss.state == STATE_DRAGGING || ss.state == STATE_SETTLING)
+        {
             mState = STATE_COLLAPSED;
-        } else {
+        }
+        else
+        {
             mState = ss.state;
         }
     }
@@ -189,12 +197,12 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     @Override
     public boolean onLayoutChild(CoordinatorLayout parent, V child, int layoutDirection)
     {
-        Log.d(LOG_TAG,"onLayoutChild layoutDirection [" + layoutDirection + "]");
+        Log.d(LOG_TAG,"onLayoutChild layoutDirection [" + layoutDirection + "] view [" + child + "]");
         if (ViewCompat.getFitsSystemWindows(parent) && !ViewCompat.getFitsSystemWindows(child))
         {
             ViewCompat.setFitsSystemWindows(child, true);
         }
-    
+        
         Log.d(LOG_TAG,"onLayoutChild BEFORE child top     [" + child.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE child bottom  [" + child.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE child left    [" + child.getLeft() + "]");
@@ -202,7 +210,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         Log.d(LOG_TAG,"onLayoutChild BEFORE child width   [" + child.getWidth() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE child height  [" + child.getHeight() + "]");
         
-    
+        
         Log.d(LOG_TAG,"onLayoutChild BEFORE parent top    [" + parent.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE parent bottom [" + parent.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild BEFORE parent left   [" + parent.getLeft() + "]");
@@ -215,14 +223,14 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         Log.d(LOG_TAG,"onLayoutChild savedLeft [" + savedLeft + "]");
         // First let the parent lay it out
         parent.onLayoutChild(child, layoutDirection);
-    
+        
         Log.d(LOG_TAG,"onLayoutChild AFTER child top       [" + child.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER child bottom    [" + child.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER child left      [" + child.getLeft() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER child right     [" + child.getRight() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER child width     [" + child.getWidth() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER child height    [" + child.getHeight() + "]");
-    
+        
         Log.d(LOG_TAG,"onLayoutChild AFTER parent top      [" + parent.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER parent bottom   [" + parent.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER parent left     [" + parent.getLeft() + "]");
@@ -230,7 +238,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         Log.d(LOG_TAG,"onLayoutChild AFTER parent width    [" + parent.getWidth() + "]");
         Log.d(LOG_TAG,"onLayoutChild AFTER parent height   [" + parent.getHeight() + "]");
         
-
+        
         // Offset the left sheet
         mParentWidth = parent.getWidth();
         Log.d(LOG_TAG,"onLayoutChild #### parentWidth      [" + mParentWidth + "]");
@@ -239,7 +247,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         {
             if (mPeekWidthtMin == 0)
             {
-                mPeekWidthtMin = parent.getResources().getDimensionPixelSize(R.dimen.design_west_sheet_peek_width_min);
+                mPeekWidthtMin = parent.getResources().getDimensionPixelSize(R.dimen.design_east_sheet_peek_width_min);
                 Log.d(LOG_TAG,"onLayoutChild #### mPeekWidthtMin [" + mPeekWidthtMin + "]");
             }
             Log.d(LOG_TAG,"onLayoutChild #### mPeekWidthtMin [" + mPeekWidthtMin + "]");
@@ -254,36 +262,36 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
             peekWidth = mPeekWidth;
             Log.d(LOG_TAG,"onLayoutChild #### peekWidth [" + peekWidth + "]");
         }
-    
+        
         // les fonctions ViewCompat.offsetXXX prennent un offset positif ou négatif
         // et déplace la vue en conséquence en appliquant une translation à tous les points remarquables de la vue : les coins.
         
-        // Dans le cas d'un WestSheetBehavior, initialement la vue est cachée à la gauche de la vue centrale. La vue centrale
+        // Dans le cas d'un EastSheetBeahviour, initialement la vue est cachée à la droite de la vue centrale. La vue centrale
         // à son origine top, left, qui se situe au point de coordonnées 0,0 de contentView d'une fenêtre.
-        // Le leftSheet quand à lui à donc son origine décalée vers la gauche (x négatif) par rapport à l'origine de la vue parente et égal
+        // Le eastSheet quand à lui à donc son origine décalée vers la droite (x positif) par rapport à l'origine de la vue parente et égal
         // à la largeur de la vue enfant (width).
         
-        // faire apparaitre la vue de gauche, c'est déplacer le point d'orgine de la vue enfant pour l'amener vers le point d'origine
+        // faire apparaitre la vue de droite, c'est déplacer le point d'orgine de la vue enfant pour l'amener vers le point d'origine
         // de la fenetre:
         // - quand la vue enfant couvre la totalité de la vue parente (EXPANDED) alors le point d'origine de la vue enfant coincide
         // avec le point d'origine de la vue parente. Les top, left se supperposent
-        // - quand la vue enfant couvre partiellement la vue parente (COLLAPSED) c'est le collapsedAnchorPoint qui est rapproché de
-        // l'orgine de la vue parente.
+        // - quand la vue enfant couvre partiellement la vue parente (COLLAPSED) c'est le collapsedAnchorPoint qui est rapproché du top,right
+        // et donc situé à top,right de l'orgine de la vue parente.
         //
-        // Dans un LeftSheetBeaviour le "top" du collapsedAnchorPoint est égal au top de la vue parente.
+        // Dans un EastSheetBeahviour le "top" du collapsedAnchorPoint est égal au top de la vue parente.
         // Le "left" est lui forcément supérieur au point d'origine de la vue enfant mais inférieur à la largeur de la vue enfant.
         
         int leftCollapsedAnchorPoint = child.getLeft() + child.getWidth() - peekWidth;
         int topCollapsedAnchorPoint = child.getTop();
         
-            // l'offset résultant doit donc être négatif
-        mMinOffset = - leftCollapsedAnchorPoint;
-        mMaxOffset = - child.getLeft();
+        // l'offset résultant doit donc être positif
+        mMinOffset = leftCollapsedAnchorPoint;
+        mMaxOffset = child.getLeft();
         
         
         Log.d(LOG_TAG,"onLayoutChild #### mMinOffset [" + mMinOffset + "]");
         Log.d(LOG_TAG,"onLayoutChild #### mMaxOffset [" + mMaxOffset + "]");
-    
+        
         if (mState == STATE_EXPANDED)
         {
             Log.d(LOG_TAG,"===> onLayoutChild STATE_EXPANDED offsetLeftAndRight [" + mMaxOffset + "]");
@@ -291,8 +299,8 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         }
         else if (mHideable && mState == STATE_HIDDEN)
         {
-            Log.d(LOG_TAG,"===> onLayoutChild STATE_HIDDEN offsetLeftAndRight [" + -mParentWidth + "]");
-            ViewCompat.offsetLeftAndRight(child, -mParentWidth);
+            Log.d(LOG_TAG,"===> onLayoutChild STATE_HIDDEN offsetLeftAndRight [" + mParentWidth + "]");
+            ViewCompat.offsetLeftAndRight(child, mParentWidth);
         }
         else if (mState == STATE_COLLAPSED)
         {
@@ -310,14 +318,14 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         {
             mViewDragHelper = ViewDragHelper.create(parent, mDragCallback);
         }
-    
+        
         Log.d(LOG_TAG,"onLayoutChild FINAL child top       [" + child.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL child bottom    [" + child.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL child left      [" + child.getLeft() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL child right     [" + child.getRight() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL child width     [" + child.getWidth() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL child height    [" + child.getHeight() + "]");
-    
+        
         Log.d(LOG_TAG,"onLayoutChild FINAL parent top      [" + parent.getTop() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL parent bottom   [" + parent.getBottom() + "]");
         Log.d(LOG_TAG,"onLayoutChild FINAL parent left     [" + parent.getLeft() + "]");
@@ -334,7 +342,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     @Override
     public boolean onInterceptTouchEvent(CoordinatorLayout parent, V child, MotionEvent event)
     {
-        Log.e(LOG_TAG,"onInterceptTouchEvent event [" + event + "]");
+        Log.e(LOG_TAG,"onInterceptTouchEvent event [" + event + "] view [" + child + "]");
         if (!child.isShown())
         {
             mIgnoreEvents = true;
@@ -382,8 +390,9 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
                 }
                 mIgnoreEvents = mActivePointerId == MotionEvent.INVALID_POINTER_ID && !parent.isPointInChildBounds(child, mInitialX, initialY);
                 Log.e(LOG_TAG,"onInterceptTouchEvent ### ignoreEvents [" + mIgnoreEvents + "].");
+
                 /*
-                if(mIgnoreEvents && mInitialX < mPeekWidth && mHideable && mState == STATE_HIDDEN)
+                if(mIgnoreEvents && mInitialX > mMaxOffset && mHideable && mState == STATE_HIDDEN)
                 {
                     setState(STATE_EXPANDED);
                 }
@@ -409,7 +418,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     @Override
     public boolean onTouchEvent(CoordinatorLayout parent, V child, MotionEvent event)
     {
-        Log.d(LOG_TAG,"onTouchEvent event [" + event + "]");
+        Log.d(LOG_TAG,"onTouchEvent event [" + event + "] view [" + child + "]");
         if (!child.isShown())
         {
             Log.d(LOG_TAG,"onTouchEvent. Return [false]");
@@ -466,7 +475,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     @Override
     public void onNestedPreScroll(CoordinatorLayout coordinatorLayout, V child, View target, int dx, int dy, int[] consumed)
     {
-    
+        
         Log.d(LOG_TAG,"onNestedPreScroll dx [" + dx + "] dy [" + dy + "] consumed [" + consumed + "]");
         
         View scrollingChild = mNestedScrollingChildRef.get();
@@ -574,7 +583,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     @Override
     public boolean onNestedPreFling(CoordinatorLayout coordinatorLayout, V child, View target, float velocityX, float velocityY)
     {
-        Log.d(LOG_TAG,"onNestedPreFling velocityX [" + velocityX + "] velocityY [" + velocityY + "] ");
+        Log.d(LOG_TAG,"onNestedPreFling velocityX [" + velocityX + "] velocityY [" + velocityY + "] view [" + child + "]");
         return target == mNestedScrollingChildRef.get() && (mState != STATE_EXPANDED || super.onNestedPreFling(coordinatorLayout, child, target, velocityX, velocityY));
     }
     /**
@@ -664,7 +673,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
      *
      * @param callback The callback to notify when left sheet events occur.
      */
-    public void setWestSheetCallback(LeftSheetCallback callback)
+    public void setEastSheetCallback(EastSheetCallback callback)
     {
         mCallback = callback;
     }
@@ -754,16 +763,20 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     
     boolean shouldHide(View child, float xvel)
     {
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "]");
+        Log.d(LOG_TAG,"shouldHide xvel ........ [" + xvel + "] view [" + child + "]");
+        Log.d(LOG_TAG,"shouldHide child left .. [" + child.getLeft() + "]");
+        Log.d(LOG_TAG,"shouldHide mMinOffset .. [" + mMinOffset + "]");
+        Log.d(LOG_TAG,"shouldHide mMaxOffset .. [" + mMaxOffset + "]");
         if (mSkipCollapsed)
         {
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => TRUE");
             return true;
         }
-        if (mMinOffset < child.getLeft() && child.getLeft() < mMaxOffset)
+        if (child.getLeft() < mMinOffset)
         {
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => left........[" + child.getLeft() + "]");
-            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMaxOffset..[" + mMinOffset + "]");
+            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMaxOffset..[" + mMaxOffset + "]");
+            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMinOffset..[" + mMinOffset + "]");
             // It should not hide, but collapse.
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => FALSE");
             return false;
@@ -812,7 +825,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     
     void startSettlingAnimation(View child, int state)
     {
-        Log.w(LOG_TAG,"startSettlingAnimation state        [" + state + "]");
+        Log.w(LOG_TAG,"startSettlingAnimation state        [" + state + "] view [" + child + "]");
         Log.w(LOG_TAG,"startSettlingAnimation mMaxOffset   [" + mMaxOffset + "]");
         Log.w(LOG_TAG,"startSettlingAnimation mMinOffset   [" + mMinOffset + "]");
         Log.w(LOG_TAG,"startSettlingAnimation mParentWidth [" + mParentWidth + "]");
@@ -830,7 +843,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         }
         else if (mHideable && state == STATE_HIDDEN)
         {
-            left = - mParentWidth;
+            left = mParentWidth;
         }
         else
         {
@@ -850,12 +863,12 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     
     private final ViewDragHelper.Callback mDragCallback = new ViewDragHelper.Callback()
     {
-        private static final String LOG_TAG_CALLBACK = "LSBCB";
+        private static final String LOG_TAG_CALLBACK = "ESBCB";
         
         @Override
         public boolean tryCaptureView(View child, int pointerId)
         {
-            Log.d(LOG_TAG_CALLBACK,"tryCaptureView pointerId [" + pointerId + "]");
+            Log.d(LOG_TAG_CALLBACK,"tryCaptureView pointerId [" + pointerId + "] view [" + child + "]");
             if (mState == STATE_DRAGGING)
             {
                 return false;
@@ -897,11 +910,14 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         @Override
         public void onViewReleased(View releasedChild, float xvel, float yvel)
         {
+            int currentLeft = releasedChild.getLeft();
+            
             Log.d(LOG_TAG_CALLBACK,"***** onViewReleased xvel [" + xvel + "] yvel [" + yvel + "]" );
+            Log.d(LOG_TAG_CALLBACK,"***** onViewReleased mMaxOffset [" + mMaxOffset + "] mMinOffset [" + mMinOffset + "] currentLeft [" + currentLeft + "]" );
             int left;
             @State int targetState;
             
-            if (xvel > 0)
+            if (xvel < 0)
             {
                 // Moving left
                 left = mMaxOffset;
@@ -910,13 +926,12 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
             }
             else if (mHideable && shouldHide(releasedChild, xvel))
             {
-                left = -mParentWidth;
+                left = mParentWidth;
                 targetState = STATE_HIDDEN;
                 Log.d(LOG_TAG_CALLBACK,"***** onViewReleased xvel [" + xvel + "] yvel [" + yvel + "] targetState STATE_HIDDEN" );
             }
             else if (xvel == 0.f)
             {
-                int currentLeft = releasedChild.getLeft();
                 if (Math.abs(currentLeft - mMinOffset) < Math.abs(currentLeft - mMaxOffset))
                 {
                     left = mMinOffset;
@@ -953,7 +968,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         @Override
         public int clampViewPositionVertical(View child, int top, int dy)
         {
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionVertical: top [" + top + "] dy [" + dy + "]" );
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionVertical: top [" + top + "] dy [" + dy + "] view [" + child + "]" );
             Log.d(LOG_TAG_CALLBACK,"clampViewPositionVertical: clamp position for top [" + child.getTop() + "]" );
             return child.getTop();
         }
@@ -961,13 +976,14 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx)
         {
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMinOffset    [" + mMinOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMinOffset    [" + mMinOffset + "] view [" + child + "]"  );
             Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMaxOffset    [" + mMaxOffset + "]" );
             Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mParentWidth  [" + mParentWidth + "]" );
             
             int newPos = left + dx;
-            int clampPositionForHorizontal = MathUtils.clamp(newPos, mHideable ? -mParentWidth : mMinOffset, mMaxOffset );
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] clampPosition [" + clampPositionForHorizontal + "]" );
+            //int clampPositionForHorizontal = MathUtils.clamp(newPos, mHideable ? mParentWidth : mMaxOffset, mMinOffset );
+            int clampPositionForHorizontal = MathUtils.clamp(newPos, mMaxOffset ,mHideable ? mParentWidth : mMinOffset);
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] clampPosition [" + clampPositionForHorizontal + "] view [" + child + "]" );
             return clampPositionForHorizontal;
         }
         
@@ -976,9 +992,9 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         public int getViewHorizontalDragRange(View child)
         {
             int dragRange = 0;
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mParentWidth [" + mParentWidth + "]" );
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMinOffset   [" + mMinOffset + "]" );
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMaxOffset   [" + mMaxOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mParentWidth [" + mParentWidth + "] view [" + child + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMinOffset   [" + mMinOffset + "] view [" + child + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMaxOffset   [" + mMaxOffset + "] view [" + child + "]" );
             if (mHideable)
             {
                 dragRange = mParentWidth - mMinOffset;
@@ -1086,13 +1102,13 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         };
     }
     /**
-     * A utility function to get the {@link WestSheetBehavior} associated with the {@code view}.
+     * A utility function to get the {@link EastSheetBehavior} associated with the {@code view}.
      *
      * @param view The {@link View} with {@link WestSheetBehavior}.
-     * @return The {@link WestSheetBehavior} associated with the {@code view}.
+     * @return The {@link EastSheetBehavior} associated with the {@code view}.
      */
     @SuppressWarnings("unchecked")
-    public static <V extends View> WestSheetBehavior<V> from(V view)
+    public static <V extends View> EastSheetBehavior<V> from(V view)
     {
         ViewGroup.LayoutParams params = view.getLayoutParams();
         if (!(params instanceof CoordinatorLayout.LayoutParams))
@@ -1100,11 +1116,11 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
             throw new IllegalArgumentException("The view is not a child of CoordinatorLayout");
         }
         CoordinatorLayout.Behavior behavior = ((CoordinatorLayout.LayoutParams) params).getBehavior();
-        if (!(behavior instanceof WestSheetBehavior))
+        if (!(behavior instanceof EastSheetBehavior))
         {
-            throw new IllegalArgumentException("The view is not associated with WestSheetBehavior");
+            throw new IllegalArgumentException("The view is not associated with EastSheetBehavior");
         }
-        return (WestSheetBehavior<V>) behavior;
+        return (EastSheetBehavior<V>) behavior;
     }
 }
 

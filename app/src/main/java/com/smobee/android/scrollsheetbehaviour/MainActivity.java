@@ -13,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
+import com.smobee.android.scrollsheetbehaviour.widget.EastSheetBehavior;
+import com.smobee.android.scrollsheetbehaviour.widget.NorthSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.SouthSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.WestSheetBehavior;
 
@@ -21,9 +23,13 @@ public class MainActivity extends AppCompatActivity
     public static final String LOG_TAG = "Main";
     FrameLayout southSheet;
     FrameLayout westSheet;
+    FrameLayout eastSheet;
+    FrameLayout northSheet;
     
     private SouthSheetBehavior southSheetBehavior;
     private WestSheetBehavior  westSheetBehavior;
+    private NorthSheetBehavior northSheetBehavior;
+    private EastSheetBehavior  eastSheetBehavior;
     private CoordinatorLayout  coordinatorLayout;
     
     @Override
@@ -34,8 +40,9 @@ public class MainActivity extends AppCompatActivity
         
         
         this.southSheet = (FrameLayout) findViewById(R.id.south_sheet);
-    
         this.westSheet = (FrameLayout) findViewById(R.id.west_sheet);
+        this.eastSheet = (FrameLayout) findViewById(R.id.east_sheet);
+        this.northSheet = (FrameLayout) findViewById(R.id.north_sheet);
     
         this.coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout);
     
@@ -56,27 +63,27 @@ public class MainActivity extends AppCompatActivity
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 // React to state change
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_EXPANDED: {
+                    case SouthSheetBehavior.STATE_EXPANDED: {
                         Log.w(LOG_TAG, "onStateChanged: STATE_EXPANDED");
                         break;
                     }
-                    case BottomSheetBehavior.STATE_SETTLING: {
+                    case SouthSheetBehavior.STATE_SETTLING: {
                         Log.w(LOG_TAG, "onStateChanged: STATE_SETTLING");
                         break;
                     }
-                    case BottomSheetBehavior.PEEK_HEIGHT_AUTO: {
+                    case SouthSheetBehavior.PEEK_HEIGHT_AUTO: {
                         Log.w(LOG_TAG, "onStateChanged: PEEK_HEIGHT_AUTO");
                         break;
                     }
-                    case BottomSheetBehavior.STATE_COLLAPSED: {
+                    case SouthSheetBehavior.STATE_COLLAPSED: {
                         Log.w(LOG_TAG, "onStateChanged: STATE_COLLAPSED");
                         break;
                     }
-                    case BottomSheetBehavior.STATE_DRAGGING: {
+                    case SouthSheetBehavior.STATE_DRAGGING: {
                         Log.w(LOG_TAG, "onStateChanged: STATE_DRAGGING");
                         break;
                     }
-                    case BottomSheetBehavior.STATE_HIDDEN: {
+                    case SouthSheetBehavior.STATE_HIDDEN: {
                         Log.w(LOG_TAG, "onStateChanged: STATE_HIDDEN");
                         break;
                     }
@@ -96,9 +103,56 @@ public class MainActivity extends AppCompatActivity
         southSheetBehavior.setState(SouthSheetBehavior.STATE_COLLAPSED);
         southSheetBehavior.setPeekHeight(150);
         southSheetBehavior.setHideable(true);
-        southSheetBehavior.setSkipCollapsed(true);
-        
+        // southSheetBehavior.setSkipCollapsed(true);
     
+        northSheetBehavior = NorthSheetBehavior.from(northSheet);
+        northSheetBehavior.setNorthSheetCallback(new NorthSheetBehavior.NorthSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                // React to state change
+                switch (newState) {
+                    case NorthSheetBehavior.STATE_EXPANDED: {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_EXPANDED");
+                        break;
+                    }
+                    case NorthSheetBehavior.STATE_SETTLING: {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_SETTLING");
+                        break;
+                    }
+                    case NorthSheetBehavior.PEEK_HEIGHT_AUTO: {
+                        Log.w(LOG_TAG, "onStateChanged: PEEK_HEIGHT_AUTO");
+                        break;
+                    }
+                    case NorthSheetBehavior.STATE_COLLAPSED: {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_COLLAPSED");
+                        break;
+                    }
+                    case NorthSheetBehavior.STATE_DRAGGING: {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_DRAGGING");
+                        break;
+                    }
+                    case NorthSheetBehavior.STATE_HIDDEN: {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_HIDDEN");
+                        break;
+                    }
+                    default: {
+                        Log.e(LOG_TAG, "onStateChanged: default (Should not be called)");
+                        break;
+                    }
+                }
+            }
+        
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // React to dragging events (if any)
+            }
+        });
+    
+        northSheetBehavior.setState(NorthSheetBehavior.STATE_COLLAPSED);
+        northSheetBehavior.setPeekHeight(150);
+        northSheetBehavior.setHideable(true);
+        // northSheetBehavior.setSkipCollapsed(true);
+        
         westSheetBehavior = WestSheetBehavior.from(westSheet);
         westSheetBehavior.setWestSheetCallback(new WestSheetBehavior.LeftSheetCallback()
         {
@@ -154,11 +208,70 @@ public class MainActivity extends AppCompatActivity
             }
         });
     
-        westSheetBehavior.setState(WestSheetBehavior.STATE_HIDDEN);
+        westSheetBehavior.setState(WestSheetBehavior.STATE_COLLAPSED);
         westSheetBehavior.setPeekWidth(150);
         westSheetBehavior.setHideable(true);
-        westSheetBehavior.setSkipCollapsed(true);
+        // westSheetBehavior.setSkipCollapsed(true);
+    
+        eastSheetBehavior = EastSheetBehavior.from(eastSheet);
+        eastSheetBehavior.setEastSheetCallback(new EastSheetBehavior.EastSheetCallback()
+        {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState)
+            {
+                // React to state change
+                switch (newState)
+                {
+                    case EastSheetBehavior.STATE_EXPANDED:
+                    {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_EXPANDED");
+                        break;
+                    }
+                    case EastSheetBehavior.STATE_SETTLING:
+                    {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_SETTLING");
+                        break;
+                    }
+                    case EastSheetBehavior.PEEK_WIDTH_AUTO:
+                    {
+                        Log.w(LOG_TAG, "onStateChanged: PEEK_WIDTH_AUTO");
+                        break;
+                    }
+                    case EastSheetBehavior.STATE_COLLAPSED:
+                    {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_COLLAPSED");
+                        break;
+                    }
+                    case EastSheetBehavior.STATE_DRAGGING:
+                    {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_DRAGGING");
+                        break;
+                    }
+                    case EastSheetBehavior.STATE_HIDDEN:
+                    {
+                        Log.w(LOG_TAG, "onStateChanged: STATE_HIDDEN");
+                        break;
+                    }
+                    default:
+                    {
+                        Log.e(LOG_TAG, "onStateChanged: default (Should not be called)");
+                        break;
+                    }
+                }
+            }
         
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset)
+            {
+                // React to dragging events (if any)
+                Log.d(LOG_TAG, "onSlide: slideOffset [" + slideOffset + "]");
+            }
+        });
+    
+        eastSheetBehavior.setState(EastSheetBehavior.STATE_COLLAPSED);
+        eastSheetBehavior.setPeekWidth(150);
+        eastSheetBehavior.setHideable(true);
+        //eastSheetBehavior.setSkipCollapsed(true);
     }
     
     public void moveToRight()
