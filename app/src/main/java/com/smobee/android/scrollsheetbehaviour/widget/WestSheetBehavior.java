@@ -42,26 +42,26 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     /**
      * Callback for monitoring events about bottom sheets.
      */
-    public abstract static class LeftSheetCallback {
+    public interface WestSheetCallback {
         /**
-         * Called when the left sheet changes its state.
+         * Called when the west sheet changes its state.
          *
-         * @param leftSheet The left sheet view.
+         * @param westSheet   The west sheet view.
          * @param newState    The new state. This will be one of {@link #STATE_DRAGGING},
          *                    {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
          *                    {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
          */
-        public abstract void onStateChanged(@NonNull View leftSheet, @State int newState);
+        public void onWestSheetStateChanged(@NonNull View westSheet, @State int newState);
         /**
-         * Called when the bottom sheet is being dragged.
+         * Called when the west sheet is being dragged.
          *
-         * @param leftSheet The left sheet view.
-         * @param slideOffset The new offset of this left sheet within [-1,1] range. Offset
-         *                    increases as this left sheet is moving rigth. From 0 to 1 the sheet
+         * @param westSheet   The west sheet view.
+         * @param slideOffset The new offset of this west sheet within [-1,1] range. Offset
+         *                    increases as this west sheet is moving rigth. From 0 to 1 the sheet
          *                    is between collapsed and expanded states and from -1 to 0 it is
          *                    between hidden and collapsed states.
          */
-        public abstract void onSlide(@NonNull View leftSheet, float slideOffset);
+        public void onWestSheetSlide(@NonNull View westSheet, float slideOffset);
     }
     
     /**
@@ -117,7 +117,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     int                 mParentWidth;
     WeakReference<V>    mViewRef;
     WeakReference<View> mNestedScrollingChildRef;
-    private LeftSheetCallback mCallback;
+    private WestSheetCallback mCallback;
     private VelocityTracker   mVelocityTracker;
     int mActivePointerId;
     private int mInitialX;
@@ -664,7 +664,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
      *
      * @param callback The callback to notify when left sheet events occur.
      */
-    public void setWestSheetCallback(LeftSheetCallback callback)
+    public void setWestSheetCallback(WestSheetCallback callback)
     {
         mCallback = callback;
     }
@@ -737,7 +737,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         View leftSheet = mViewRef.get();
         if (leftSheet != null && mCallback != null)
         {
-            mCallback.onStateChanged(leftSheet, state);
+            mCallback.onWestSheetStateChanged(leftSheet, state);
         }
     }
     
@@ -1002,13 +1002,13 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
             {
                 float slideOffset = (float) (mMaxOffset - left) / (mParentWidth - mMaxOffset);
                 Log.d(LOG_TAG,"dispatchOnSlide slideOffset [" + slideOffset + "]" );
-                mCallback.onSlide(leftSheet, slideOffset);
+                mCallback.onWestSheetSlide(leftSheet, slideOffset);
             }
             else
             {
                 float slideOffset = (float) (mMaxOffset - left) / ((mMaxOffset - mMinOffset));
                 Log.d(LOG_TAG,"dispatchOnSlide slideOffset [" + slideOffset + "]" );
-                mCallback.onSlide(leftSheet,slideOffset);
+                mCallback.onWestSheetSlide(leftSheet,slideOffset);
             }
         }
     }

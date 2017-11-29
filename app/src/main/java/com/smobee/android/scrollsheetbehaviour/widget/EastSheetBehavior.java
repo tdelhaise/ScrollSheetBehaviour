@@ -47,26 +47,26 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     /**
      * Callback for monitoring events about bottom sheets.
      */
-    public abstract static class EastSheetCallback {
+    public interface EastSheetCallback {
         /**
-         * Called when the right sheet changes its state.
+         * Called when the east sheet changes its state.
          *
-         * @param eastSheet The right sheet view.
+         * @param eastSheet   The east sheet view.
          * @param newState    The new state. This will be one of {@link #STATE_DRAGGING},
          *                    {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
          *                    {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
          */
-        public abstract void onStateChanged(@NonNull View eastSheet, @State int newState);
+        public void onEastSheetStateChanged(@NonNull View eastSheet, @State int newState);
         /**
          * Called when the right sheet is being dragged.
          *
-         * @param eastSheet The right sheet view.
-         * @param slideOffset The new offset of this right sheet within [-1,1] range. Offset
+         * @param eastSheet   The east sheet view.
+         * @param slideOffset The new offset of this east sheet within [-1,1] range. Offset
          *                    increases as this right sheet is moving left. From 0 to 1 the sheet
          *                    is between collapsed and expanded states and from -1 to 0 it is
          *                    between hidden and collapsed states.
          */
-        public abstract void onSlide(@NonNull View eastSheet, float slideOffset);
+        public void onEastSheetSlide(@NonNull View eastSheet, float slideOffset);
     }
     
     /**
@@ -746,7 +746,7 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         View leftSheet = mViewRef.get();
         if (leftSheet != null && mCallback != null)
         {
-            mCallback.onStateChanged(leftSheet, state);
+            mCallback.onEastSheetStateChanged(leftSheet, state);
         }
     }
     
@@ -1011,20 +1011,20 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     void dispatchOnSlide(int left, int top, int dx, int dy)
     {
         Log.d(LOG_TAG,"dispatchOnSlide left [" + left + "] top [" + top + "] dx [" + dx + "] dy [" + dy + "]" );
-        View leftSheet = mViewRef.get();
-        if (leftSheet != null && mCallback != null)
+        View eastSheet = mViewRef.get();
+        if (eastSheet != null && mCallback != null)
         {
             if (left > mMaxOffset)
             {
                 float slideOffset = (float) (mMaxOffset - left) / (mParentWidth - mMaxOffset);
                 Log.d(LOG_TAG,"dispatchOnSlide slideOffset [" + slideOffset + "]" );
-                mCallback.onSlide(leftSheet, slideOffset);
+                mCallback.onEastSheetSlide(eastSheet, slideOffset);
             }
             else
             {
                 float slideOffset = (float) (mMaxOffset - left) / ((mMaxOffset - mMinOffset));
                 Log.d(LOG_TAG,"dispatchOnSlide slideOffset [" + slideOffset + "]" );
-                mCallback.onSlide(leftSheet,slideOffset);
+                mCallback.onEastSheetSlide(eastSheet,slideOffset);
             }
         }
     }

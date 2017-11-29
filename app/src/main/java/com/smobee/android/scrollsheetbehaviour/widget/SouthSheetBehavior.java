@@ -46,28 +46,28 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     /**
      * Callback for monitoring events about bottom sheets.
      */
-    public abstract static class SouthSheetCallback {
+    public interface SouthSheetCallback {
         
         /**
          * Called when the bottom sheet changes its state.
          *
-         * @param bottomSheet The bottom sheet view.
+         * @param southSheet The south sheet view.
          * @param newState    The new state. This will be one of {@link #STATE_DRAGGING},
          *                    {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
          *                    {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
          */
-        public abstract void onStateChanged(@NonNull View bottomSheet, @android.support.design.widget.BottomSheetBehavior.State int newState);
+        public void onSouthSheetStateChanged(@NonNull View southSheet, @State int newState);
         
         /**
          * Called when the bottom sheet is being dragged.
          *
-         * @param bottomSheet The bottom sheet view.
-         * @param slideOffset The new offset of this bottom sheet within [-1,1] range. Offset
-         *                    increases as this bottom sheet is moving upward. From 0 to 1 the sheet
+         * @param southSheet The south sheet view.
+         * @param slideOffset The new offset of this south sheet within [-1,1] range. Offset
+         *                    increases as this south sheet is moving upward. From 0 to 1 the sheet
          *                    is between collapsed and expanded states and from -1 to 0 it is
          *                    between hidden and collapsed states.
          */
-        public abstract void onSlide(@NonNull View bottomSheet, float slideOffset);
+        public void onSouthSheetSlide(@NonNull View southSheet, float slideOffset);
     }
     
     /**
@@ -268,7 +268,15 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             peekHeight = mPeekHeight;
         }
+        // minOffset est l'offset a appliqué au sheet si il est expanded.
+        // si la vue enfant est plus grande que la vue parent, alors l'offset est mis à 0 = top,left corner de la parent view.
+        // si la vue enfant est plus petite que la vue parent, on la pousse au max vers le bas de l'écran ... pour avoir le bord bas de la vue enfant qui
+        // coincide avec le bord bas de l'écran.
         mMinOffset = Math.max(0, mParentHeight - child.getHeight());
+        // maxOffset est l'offset appliqué au sheet si il est collapsed ...
+        // il est soit égale à la hauteur du parent moins peeekHeight, soit à mMinOffset
+        // si la vue enfante est d'une hauteur plus petite que la valeur de peekHeight alors on prend mMinOffset : la vue ne couvre pas tout le parent mais
+        // est poussée vers le bord bas de l'écran.
         mMaxOffset = Math.max(mParentHeight - peekHeight, mMinOffset);
         if (mState == STATE_EXPANDED)
         {
@@ -276,10 +284,12 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         }
         else if (mHideable && mState == STATE_HIDDEN)
         {
+            // si elle doit être cachée, on pousse la vue au dela du bas de l'écran donc au dessus mParentHeight
             ViewCompat.offsetTopAndBottom(child, mParentHeight);
         }
         else if (mState == STATE_COLLAPSED)
         {
+            
             ViewCompat.offsetTopAndBottom(child, mMaxOffset);
         }
         else if (mState == STATE_DRAGGING || mState == STATE_SETTLING)
@@ -681,7 +691,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         View bottomSheet = mViewRef.get();
         if (bottomSheet != null && mCallback != null)
         {
-            mCallback.onStateChanged(bottomSheet, state);
+            mCallback.onSouthSheetStateChanged(bottomSheet, state);
         }
     }
     
@@ -885,16 +895,16 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     
     void dispatchOnSlide(int top)
     {
-        View bottomSheet = mViewRef.get();
-        if (bottomSheet != null && mCallback != null)
+        View southSheet = mViewRef.get();
+        if (southSheet != null && mCallback != null)
         {
             if (top > mMaxOffset)
             {
-                mCallback.onSlide(bottomSheet,(float) (mMaxOffset - top) /(mParentHeight - mMaxOffset));
+                mCallback.onSouthSheetSlide(southSheet,(float) (mMaxOffset - top) /(mParentHeight - mMaxOffset));
             }
             else
             {
-                mCallback.onSlide(bottomSheet,(float) (mMaxOffset - top) / ((mMaxOffset - mMinOffset)));
+                mCallback.onSouthSheetSlide(southSheet,(float) (mMaxOffset - top) / ((mMaxOffset - mMinOffset)));
             }
         }
     }
