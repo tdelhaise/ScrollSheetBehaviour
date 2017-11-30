@@ -1,5 +1,6 @@
 package com.smobee.android.scrollsheetbehaviour;
 
+
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 
 import com.smobee.android.scrollsheetbehaviour.widget.EastSheetBehavior;
@@ -20,7 +23,12 @@ import com.smobee.android.scrollsheetbehaviour.widget.NorthSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.SouthSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.WestSheetBehavior;
 import android.view.GestureDetector.OnGestureListener;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnGestureListener
 {
@@ -29,6 +37,12 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
     FrameLayout westSheet;
     FrameLayout eastSheet;
     FrameLayout northSheet;
+    
+    ListView northListView;
+    ListView southListView;
+    ListView eastListView;
+    ListView westListView;
+    
     
     private CoordinatorLayout  coordinatorLayout;
     
@@ -48,7 +62,134 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
         this.westSheet = (FrameLayout) findViewById(R.id.west_sheet);
         this.eastSheet = (FrameLayout) findViewById(R.id.east_sheet);
         this.northSheet = (FrameLayout) findViewById(R.id.north_sheet);
+        
+        this.northListView = (ListView) findViewById(R.id.list_view_north);
+        this.southListView = (ListView) findViewById(R.id.list_view_south);
+        this.eastListView = (ListView) findViewById(R.id.list_view_east);
+        this.westListView = (ListView) findViewById(R.id.list_view_west);
     
+    
+        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
+                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
+                "Linux", "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux",
+                "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2",
+                "Android", "iPhone", "WindowsMobile", "OpenStep", "NeXTStep", "HP-UX", "AIX", "Mach III", "BeOS", "Heroku" };
+    
+        final ArrayList<String> listEast = new ArrayList<String>();
+        for (int i = 0; i < values.length; ++i) {
+            listEast.add(values[i]);
+        }
+    
+        final ArrayList<String> listWest = new ArrayList<String>();
+        for (int i = 0; i < values.length; ++i) {
+            listWest.add(values[i]);
+        }
+    
+        final ArrayList<String> listNorth = new ArrayList<String>();
+        for (int i = 0; i < values.length; ++i) {
+            listNorth.add(values[i]);
+        }
+    
+        final ArrayList<String> listSouth = new ArrayList<String>();
+        for (int i = 0; i < values.length; ++i) {
+            listSouth.add(values[i]);
+        }
+        
+        final StableArrayAdapter northAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listNorth);
+        final StableArrayAdapter southAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listSouth);
+        final StableArrayAdapter eastAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listEast);
+        final StableArrayAdapter westAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listWest);
+    
+    
+        this.northListView.setAdapter(northAdapter);
+    
+        this.northListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
+            {
+                final String item = (String) parent.getItemAtPosition(position);
+                view.animate().setDuration(2000).alpha(0)
+                        .withEndAction(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                listNorth.remove(item);
+                                northAdapter.notifyDataSetChanged();
+                                view.setAlpha(1);
+                            }
+                        });
+            }
+        });
+    
+    
+        this.southListView.setAdapter(southAdapter);
+    
+        this.southListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
+            {
+                final String item = (String) parent.getItemAtPosition(position);
+                view.animate().setDuration(2000).alpha(0)
+                        .withEndAction(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                listSouth.remove(item);
+                                southAdapter.notifyDataSetChanged();
+                                view.setAlpha(1);
+                            }
+                        });
+            }
+        });
+    
+        this.eastListView.setAdapter(eastAdapter);
+    
+        this.eastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
+            {
+                final String item = (String) parent.getItemAtPosition(position);
+                view.animate().setDuration(2000).alpha(0)
+                        .withEndAction(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                listEast.remove(item);
+                                eastAdapter.notifyDataSetChanged();
+                                view.setAlpha(1);
+                            }
+                        });
+            }
+        });
+    
+        this.westListView.setAdapter(westAdapter);
+    
+        this.westListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
+            {
+                final String item = (String) parent.getItemAtPosition(position);
+                view.animate().setDuration(2000).alpha(0)
+                        .withEndAction(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                listWest.remove(item);
+                                westAdapter.notifyDataSetChanged();
+                                view.setAlpha(1);
+                            }
+                        });
+            }
+        });
+        
         this.coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout);
     
         gestureDetector = new GestureDetector(this, this);
@@ -70,6 +211,34 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
         this.sheetsManager.setEastSheetBehavior(eastSheetBehavior);
     
         this.sheetsManager.setup();
+    }
+    
+    private class StableArrayAdapter extends ArrayAdapter<String>
+    {
+    
+        HashMap<String, Integer> mIdMap = new HashMap<String, Integer>();
+    
+        public StableArrayAdapter(Context context, int textViewResourceId, List<String> objects)
+        {
+            super(context, textViewResourceId, objects);
+            for (int i = 0; i < objects.size(); ++i)
+            {
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+    
+        @Override
+        public long getItemId(int position)
+        {
+            String item = getItem(position);
+            return mIdMap.get(item);
+        }
+    
+        @Override
+        public boolean hasStableIds()
+        {
+            return true;
+        }
     }
     
     @Override

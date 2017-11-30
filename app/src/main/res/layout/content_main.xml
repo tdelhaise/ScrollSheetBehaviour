@@ -33,6 +33,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+            <ListView
+                android:id="@+id/list_view_south"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            </ListView>
         </LinearLayout>
     </FrameLayout>
 
@@ -50,6 +56,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+            <ListView
+                android:id="@+id/list_view_west"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </ListView>
         </LinearLayout>
     </FrameLayout>
 
@@ -67,6 +78,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+            <ListView
+                android:id="@+id/list_view_east"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            </ListView>
         </LinearLayout>
     </FrameLayout>
 
@@ -84,6 +101,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+            <ListView
+                android:id="@+id/list_view_north"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </ListView>
         </LinearLayout>
     </FrameLayout>
 
