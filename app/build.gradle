@@ -1,7 +1,27 @@
 apply plugin: 'com.android.application'
 
+class Globals {
+    static String appName = 'scroll-sheet-behavior'
+    static int appVersionCode = 2
+    static String appVersionName = "0.2"
+}
+
+def computeVersionCode() {
+    return Globals.appVersionCode
+}
+
+def computeVersionName() {
+    def currentVersionName = Globals.appVersionName
+    def buildNumber = System.getenv('BUILD_NUMBER')
+    if (buildNumber?.trim()) {
+        currentVersionName = currentVersionName + '.' + buildNumber
+    }
+    return currentVersionName
+}
+
 android {
     compileSdkVersion 26
+    flavorDimensions "versionCode"
     defaultConfig {
         applicationId "com.smobee.android.scrollsheetbehaviour"
         minSdkVersion 19
@@ -16,10 +36,23 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildToolsVersion '27.0.0'
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def apk = output.outputFile
+            def newName = apk.name.replace('-' + variant.buildType.name, '')
+
+            newName = newName.replace('.apk', '-v' + computeVersionName() + '-' + variant.buildType.name + '.apk')
+            newName = newName.replace(project.name, Globals.appName)
+
+            outputFileName = new File(apk.parentFile, newName)
+        }
+    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.android.support:design:26.1.0'
