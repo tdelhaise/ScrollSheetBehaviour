@@ -289,8 +289,8 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         mMaxOffset = child.getLeft();
         
         
-        Log.d(LOG_TAG,"onLayoutChild #### mMinOffset [" + mMinOffset + "]");
-        Log.d(LOG_TAG,"onLayoutChild #### mMaxOffset [" + mMaxOffset + "]");
+        Log.d(LOG_TAG,"onLayoutChild #### mOffsetExpanded [" + mMinOffset + "]");
+        Log.d(LOG_TAG,"onLayoutChild #### mOffsetCollapsed [" + mMaxOffset + "]");
         
         if (mState == STATE_EXPANDED)
         {
@@ -392,7 +392,7 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
                 Log.e(LOG_TAG,"onInterceptTouchEvent ### ignoreEvents [" + mIgnoreEvents + "].");
 
                 /*
-                if(mIgnoreEvents && mInitialX > mMaxOffset && mHideable && mState == STATE_HIDDEN)
+                if(mIgnoreEvents && mInitialX > mOffsetCollapsed && mHideable && mState == STATE_HIDDEN)
                 {
                     setState(STATE_EXPANDED);
                 }
@@ -765,8 +765,8 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     {
         Log.d(LOG_TAG,"shouldHide xvel ........ [" + xvel + "] view [" + child + "]");
         Log.d(LOG_TAG,"shouldHide child left .. [" + child.getLeft() + "]");
-        Log.d(LOG_TAG,"shouldHide mMinOffset .. [" + mMinOffset + "]");
-        Log.d(LOG_TAG,"shouldHide mMaxOffset .. [" + mMaxOffset + "]");
+        Log.d(LOG_TAG,"shouldHide mOffsetExpanded .. [" + mMinOffset + "]");
+        Log.d(LOG_TAG,"shouldHide mOffsetCollapsed .. [" + mMaxOffset + "]");
         if (mSkipCollapsed)
         {
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => TRUE");
@@ -775,8 +775,8 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         if (child.getLeft() < mMinOffset)
         {
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => left........[" + child.getLeft() + "]");
-            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMaxOffset..[" + mMaxOffset + "]");
-            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMinOffset..[" + mMinOffset + "]");
+            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mOffsetCollapsed..[" + mMaxOffset + "]");
+            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mOffsetExpanded..[" + mMinOffset + "]");
             // It should not hide, but collapse.
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => FALSE");
             return false;
@@ -786,10 +786,10 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => newLeft .............................................[" + newLeft + "]");
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => HIDE_THRESHOLD ......................................[" + HIDE_THRESHOLD + "]");
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mPeekWidth ..........................................[" + mPeekWidth + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMaxOffset ..........................................[" + mMaxOffset + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => newLeft - mMaxOffset ................................[" + (newLeft - mMaxOffset) + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mMaxOffset) ......................[" + Math.abs(newLeft - mMaxOffset) + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth .[" + Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mOffsetCollapsed ..........................................[" + mMaxOffset + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => newLeft - mOffsetCollapsed ................................[" + (newLeft - mMaxOffset) + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mOffsetCollapsed) ......................[" + Math.abs(newLeft - mMaxOffset) + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mOffsetCollapsed) / (float) mPeekWidth .[" + Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth + "]");
         boolean result = Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth > HIDE_THRESHOLD;
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => result ..............................................[" + result + "]");
         return result;
@@ -826,8 +826,8 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     void startSettlingAnimation(View child, int state)
     {
         Log.w(LOG_TAG,"startSettlingAnimation state        [" + state + "] view [" + child + "]");
-        Log.w(LOG_TAG,"startSettlingAnimation mMaxOffset   [" + mMaxOffset + "]");
-        Log.w(LOG_TAG,"startSettlingAnimation mMinOffset   [" + mMinOffset + "]");
+        Log.w(LOG_TAG,"startSettlingAnimation mOffsetCollapsed   [" + mMaxOffset + "]");
+        Log.w(LOG_TAG,"startSettlingAnimation mOffsetExpanded   [" + mMinOffset + "]");
         Log.w(LOG_TAG,"startSettlingAnimation mParentWidth [" + mParentWidth + "]");
         Log.w(LOG_TAG,"startSettlingAnimation child top    [" + child.getTop() + "]");
         
@@ -913,7 +913,7 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
             int currentLeft = releasedChild.getLeft();
             
             Log.d(LOG_TAG_CALLBACK,"***** onViewReleased xvel [" + xvel + "] yvel [" + yvel + "]" );
-            Log.d(LOG_TAG_CALLBACK,"***** onViewReleased mMaxOffset [" + mMaxOffset + "] mMinOffset [" + mMinOffset + "] currentLeft [" + currentLeft + "]" );
+            Log.d(LOG_TAG_CALLBACK,"***** onViewReleased mOffsetCollapsed [" + mMaxOffset + "] mOffsetExpanded [" + mMinOffset + "] currentLeft [" + currentLeft + "]" );
             int left;
             @State int targetState;
             
@@ -976,12 +976,12 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx)
         {
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMinOffset    [" + mMinOffset + "] view [" + child + "]"  );
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMaxOffset    [" + mMaxOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mOffsetExpanded    [" + mMinOffset + "] view [" + child + "]"  );
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mOffsetCollapsed    [" + mMaxOffset + "]" );
             Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mParentWidth  [" + mParentWidth + "]" );
             
             int newPos = left + dx;
-            //int clampPositionForHorizontal = MathUtils.clamp(newPos, mHideable ? mParentWidth : mMaxOffset, mMinOffset );
+            //int clampPositionForHorizontal = MathUtils.clamp(newPos, mHideable ? mParentWidth : mOffsetCollapsed, mOffsetExpanded );
             int clampPositionForHorizontal = MathUtils.clamp(newPos, mMaxOffset ,mHideable ? mParentWidth : mMinOffset);
             Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] clampPosition [" + clampPositionForHorizontal + "] view [" + child + "]" );
             return clampPositionForHorizontal;
@@ -993,8 +993,8 @@ public class EastSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         {
             int dragRange = 0;
             Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mParentWidth [" + mParentWidth + "] view [" + child + "]" );
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMinOffset   [" + mMinOffset + "] view [" + child + "]" );
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMaxOffset   [" + mMaxOffset + "] view [" + child + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mOffsetExpanded   [" + mMinOffset + "] view [" + child + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mOffsetCollapsed   [" + mMaxOffset + "] view [" + child + "]" );
             if (mHideable)
             {
                 dragRange = mParentWidth - mMinOffset;

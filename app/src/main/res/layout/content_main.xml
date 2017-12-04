@@ -25,20 +25,21 @@
         android:layout_height="match_parent"
         android:background="@color/colorBackgroundSouthSheet"
         android:elevation="2dp"
-        custom:south_behavior_hideable="true"
-        custom:south_behavior_peekHeight="150dp"
-        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.SouthSheetBehavior"
+        custom:sheet_behavior_position="SOUTH"
+        custom:sheet_behavior_identifier_name="south"
+        custom:sheet_behavior_hideable="true"
+        custom:sheet_behavior_peekSize="150dp"
+        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.SheetBehavior"
         tools:visibility="visible">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <ListView
-                android:id="@+id/list_view_south"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view_south"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            </ListView>
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
         </LinearLayout>
     </FrameLayout>
 
@@ -48,19 +49,21 @@
         android:layout_height="match_parent"
         android:background="@color/colorBackgroundWestSheet"
         android:elevation="4dp"
-        custom:west_behavior_hideable="true"
-        custom:west_behavior_peekWidth="150dp"
-        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.WestSheetBehavior"
+        custom:sheet_behavior_position="WEST"
+        custom:sheet_behavior_identifier_name="west"
+        custom:sheet_behavior_hideable="true"
+        custom:sheet_behavior_peekSize="150dp"
+        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.SheetBehavior"
         tools:visibility="visible">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <ListView
-                android:id="@+id/list_view_west"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view_west"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-            </ListView>
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
         </LinearLayout>
     </FrameLayout>
 
@@ -70,20 +73,21 @@
         android:layout_height="match_parent"
         android:background="@color/colorBackgroundEastSheet"
         android:elevation="6dp"
-        custom:east_behavior_hideable="true"
-        custom:east_behavior_peekWidth="150dp"
-        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.EastSheetBehavior"
+        custom:sheet_behavior_identifier_name="east"
+        custom:sheet_behavior_position="EAST"
+        custom:sheet_behavior_hideable="true"
+        custom:sheet_behavior_peekSize="150dp"
+        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.SheetBehavior"
         tools:visibility="visible">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <ListView
-                android:id="@+id/list_view_east"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view_east"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            </ListView>
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
         </LinearLayout>
     </FrameLayout>
 
@@ -93,22 +97,21 @@
         android:layout_height="match_parent"
         android:background="@color/colorBackgroundNorthSheet"
         android:elevation="8dp"
-        custom:north_behavior_hideable="true"
-        custom:north_behavior_peekHeight="150dp"
-        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.NorthSheetBehavior"
+        custom:sheet_behavior_identifier_name="north"
+        custom:sheet_behavior_position="NORTH"
+        custom:sheet_behavior_hideable="true"
+        custom:sheet_behavior_peekSize="150dp"
+        app:layout_behavior="com.smobee.android.scrollsheetbehaviour.widget.SheetBehavior"
         tools:visibility="visible">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <ListView
-                android:id="@+id/list_view_north"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view_north"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-            </ListView>
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
         </LinearLayout>
     </FrameLayout>
-
-
-
 </android.support.design.widget.CoordinatorLayout>

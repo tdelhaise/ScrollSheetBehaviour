@@ -281,8 +281,8 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         mMaxOffset = - child.getLeft();
         
         
-        Log.d(LOG_TAG,"onLayoutChild #### mMinOffset [" + mMinOffset + "]");
-        Log.d(LOG_TAG,"onLayoutChild #### mMaxOffset [" + mMaxOffset + "]");
+        Log.d(LOG_TAG,"onLayoutChild #### mOffsetExpanded [" + mMinOffset + "]");
+        Log.d(LOG_TAG,"onLayoutChild #### mOffsetCollapsed [" + mMaxOffset + "]");
     
         if (mState == STATE_EXPANDED)
         {
@@ -763,7 +763,7 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         if (mMinOffset < child.getLeft() && child.getLeft() < mMaxOffset)
         {
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => left........[" + child.getLeft() + "]");
-            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMaxOffset..[" + mMinOffset + "]");
+            Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mOffsetCollapsed..[" + mMinOffset + "]");
             // It should not hide, but collapse.
             Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => FALSE");
             return false;
@@ -773,10 +773,10 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => newLeft .............................................[" + newLeft + "]");
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => HIDE_THRESHOLD ......................................[" + HIDE_THRESHOLD + "]");
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mPeekWidth ..........................................[" + mPeekWidth + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mMaxOffset ..........................................[" + mMaxOffset + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => newLeft - mMaxOffset ................................[" + (newLeft - mMaxOffset) + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mMaxOffset) ......................[" + Math.abs(newLeft - mMaxOffset) + "]");
-        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth .[" + Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => mOffsetCollapsed ..........................................[" + mMaxOffset + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => newLeft - mOffsetCollapsed ................................[" + (newLeft - mMaxOffset) + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mOffsetCollapsed) ......................[" + Math.abs(newLeft - mMaxOffset) + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => Math.abs(newLeft - mOffsetCollapsed) / (float) mPeekWidth .[" + Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth + "]");
         boolean result = Math.abs(newLeft - mMaxOffset) / (float) mPeekWidth > HIDE_THRESHOLD;
         Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] => result ..............................................[" + result + "]");
         return result;
@@ -813,8 +813,8 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
     void startSettlingAnimation(View child, int state)
     {
         Log.w(LOG_TAG,"startSettlingAnimation state        [" + state + "]");
-        Log.w(LOG_TAG,"startSettlingAnimation mMaxOffset   [" + mMaxOffset + "]");
-        Log.w(LOG_TAG,"startSettlingAnimation mMinOffset   [" + mMinOffset + "]");
+        Log.w(LOG_TAG,"startSettlingAnimation mOffsetCollapsed   [" + mMaxOffset + "]");
+        Log.w(LOG_TAG,"startSettlingAnimation mOffsetExpanded   [" + mMinOffset + "]");
         Log.w(LOG_TAG,"startSettlingAnimation mParentWidth [" + mParentWidth + "]");
         Log.w(LOG_TAG,"startSettlingAnimation child top    [" + child.getTop() + "]");
         
@@ -961,8 +961,8 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx)
         {
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMinOffset    [" + mMinOffset + "]" );
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mMaxOffset    [" + mMaxOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mOffsetExpanded    [" + mMinOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mOffsetCollapsed    [" + mMaxOffset + "]" );
             Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal: left [" + left + "] dx [" + dx + "] mParentWidth  [" + mParentWidth + "]" );
             
             int newPos = left + dx;
@@ -977,8 +977,8 @@ public class WestSheetBehavior<V extends View> extends CoordinatorLayout.Behavio
         {
             int dragRange = 0;
             Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mParentWidth [" + mParentWidth + "]" );
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMinOffset   [" + mMinOffset + "]" );
-            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mMaxOffset   [" + mMaxOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mOffsetExpanded   [" + mMinOffset + "]" );
+            Log.d(LOG_TAG_CALLBACK,"getViewHorizontalDragRange mOffsetCollapsed   [" + mMaxOffset + "]" );
             if (mHideable)
             {
                 dragRange = mParentWidth - mMinOffset;

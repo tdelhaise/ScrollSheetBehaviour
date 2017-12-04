@@ -346,9 +346,10 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public boolean onInterceptTouchEvent(CoordinatorLayout parent, V child, MotionEvent event)
     {
-        Log.d(LOG_TAG,"onInterceptTouchEvent ");
+        Log.d(LOG_TAG,"onInterceptTouchEvent child [" + child + "] event [" + event + "]");
         if (!child.isShown())
         {
+            Log.d(LOG_TAG,"onInterceptTouchEvent child not shown. => FALSE");
             mIgnoreEvents = true;
             return false;
         }
@@ -356,6 +357,7 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         // Record the velocity
         if (action == MotionEvent.ACTION_DOWN)
         {
+            Log.d(LOG_TAG,"onInterceptTouchEvent => RESET");
             reset();
         }
         if (mVelocityTracker == null)
@@ -380,29 +382,32 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
                 int initialX = (int) event.getX();
                 mInitialY = (int) event.getY();
                 View scroll = mNestedScrollingChildRef != null ? mNestedScrollingChildRef.get() : null;
+                Log.d(LOG_TAG,"onInterceptTouchEvent ACTION_DOWN mNestedScrollingChildRef [" + mNestedScrollingChildRef + "] => scroll [" + scroll + "]");
                 if (scroll != null && parent.isPointInChildBounds(scroll, initialX, mInitialY))
                 {
                     mActivePointerId = event.getPointerId(event.getActionIndex());
                     mTouchingScrollingChild = true;
+                    
                 }
+                Log.d(LOG_TAG,"onInterceptTouchEvent ACTION_DOWN => scroll [" + scroll + "] mTouchingScrollingChild [" + mTouchingScrollingChild + "]");
                 mIgnoreEvents = mActivePointerId == MotionEvent.INVALID_POINTER_ID && !parent.isPointInChildBounds(child, initialX, mInitialY);
-                /*
-                if(mIgnoreEvents && mInitialY > mMaxOffset && mHideable && mState == STATE_HIDDEN)
-                {
-                    setState(STATE_EXPANDED);
-                }
-                */
+                Log.d(LOG_TAG,"onInterceptTouchEvent ACTION_DOWN => mIgnoreEvents [" + mIgnoreEvents + "]");
                 break;
         }
+        Log.d(LOG_TAG,"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] dragHelperIntercept [" + mViewDragHelper.shouldInterceptTouchEvent(event) + "] ");
         if (!mIgnoreEvents && mViewDragHelper.shouldInterceptTouchEvent(event))
         {
+            Log.d(LOG_TAG,"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] dragHelperIntercept [" + mViewDragHelper.shouldInterceptTouchEvent(event) + "] => TRUE ");
             return true;
         }
         // We have to handle cases that the ViewDragHelper does not capture the bottom sheet because
         // it is not the top most view of its parent. This is not necessary when the touch event is
         // happening over the scrolling content as nested scrolling logic handles that case.
         View scroll = mNestedScrollingChildRef.get();
-        return action == MotionEvent.ACTION_MOVE && scroll != null && !mIgnoreEvents && mState != STATE_DRAGGING && !parent.isPointInChildBounds(scroll, (int) event.getX(), (int) event.getY()) && Math.abs(mInitialY - event.getY()) > mViewDragHelper.getTouchSlop();
+    
+        boolean intercepted = action == MotionEvent.ACTION_MOVE && scroll != null && !mIgnoreEvents && mState != STATE_DRAGGING && !parent.isPointInChildBounds(scroll, (int) event.getX(), (int) event.getY()) && Math.abs(mInitialY - event.getY()) > mViewDragHelper.getTouchSlop();
+        Log.d(LOG_TAG,"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] => intercepted [" + intercepted + "]");
+        return intercepted;
     }
     
     @Override
@@ -420,7 +425,12 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             Log.d(LOG_TAG,"onTouchEvent: STATE_DRAGGING && ACTION_DOWN => TRUE");
             return true;
         }
-        mViewDragHelper.processTouchEvent(event);
+        
+        if (mViewDragHelper != null)
+        {
+            mViewDragHelper.processTouchEvent(event);
+        }
+        
         // Record the velocity
         if (action == MotionEvent.ACTION_DOWN)
         {
@@ -450,7 +460,7 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, V child, View directTargetChild, View target, int nestedScrollAxes)
     {
-        Log.d(LOG_TAG,"onStartNestedScroll ");
+        Log.d(LOG_TAG,"*** DEPRECATED *** onStartNestedScroll ");
         mLastNestedScrollDy = 0;
         mNestedScrolled = false;
         return (nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0;
@@ -459,48 +469,62 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public void onNestedPreScroll(CoordinatorLayout coordinatorLayout, V child, View target, int dx, int dy, int[] consumed)
     {
-        Log.d(LOG_TAG,"onNestedPreScroll ");
+        Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll dx [" + dx + "] dy [" + dy + "] mLastNestedScrollDy [" + mLastNestedScrollDy + "]" );
         View scrollingChild = mNestedScrollingChildRef.get();
         if (target != scrollingChild)
         {
             return;
         }
-        // mMinOffset => expanded
-        // mMaxOffset => collapsed
-        
+    
         int currentTop = child.getTop();
         int newTop = currentTop - dy;
+        // Log.w(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] dy [" + dy + "]");
         if (dy > 0)
-        { // Upward
+        {
+            // Upward
             if (newTop < mOffsetExpanded)
             {
                 consumed[1] = currentTop - mOffsetExpanded;
-                ViewCompat.offsetTopAndBottom(child, -consumed[1]);
+                Log.w(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll UPWARD moveOffest [" + consumed[1] + "] EXPANDED");
+                ViewCompat.offsetTopAndBottom(child, consumed[1]);
                 setStateInternal(STATE_EXPANDED);
+                // Log.d(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll UPWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] offset [" + (-consumed[1]) + "] EXPANDED");
             }
             else
             {
                 consumed[1] = dy;
-                ViewCompat.offsetTopAndBottom(child, -dy);
+                ViewCompat.offsetTopAndBottom(child, dy);
+                Log.w(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll UPWARD moveOffest [" + dy + "] DRAGGING");
+                // Log.d(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll UPWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] offset [" + (-dy) + "] DRAGGING");
                 setStateInternal(STATE_DRAGGING);
             }
         }
         else if (dy < 0)
-        { // Downward
-            if (!target.canScrollVertically(-1))
+        {
+            // Downward
+            if (!target.canScrollVertically(1))
             {
+                // Log.d(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll DOWNWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetCollapsed [" + mOffsetCollapsed + "]");
                 if (newTop <= mOffsetCollapsed || mHideable)
                 {
+                    // Log.d(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll DOWNWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] offset [" + (-dy) + "] DRAGGING");
                     consumed[1] = dy;
-                    ViewCompat.offsetTopAndBottom(child, -dy);
+                    ViewCompat.offsetTopAndBottom(child, dy);
+                    Log.w(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffest [" + dy + "] DRAGGING");
                     setStateInternal(STATE_DRAGGING);
                 }
                 else
                 {
                     consumed[1] = currentTop - mOffsetCollapsed;
-                    ViewCompat.offsetTopAndBottom(child, -consumed[1]);
+                    // Log.d(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll DOWNWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] offset [" + (-consumed[1]) + "] COLLAPSED");
+                    Log.w(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffest [" + consumed[1] + "] DRAGGING");
+                    ViewCompat.offsetTopAndBottom(child, consumed[1]);
                     setStateInternal(STATE_COLLAPSED);
                 }
+            }
+            else
+            {
+                Log.e(LOG_TAG, "*** DEPRECATED *** onNestedPreScroll DOWNWARD IGNORED");
             }
         }
         dispatchOnSlide(child.getTop());
@@ -511,10 +535,11 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public void onStopNestedScroll(CoordinatorLayout coordinatorLayout, V child, View target)
     {
-        Log.d(LOG_TAG,"onStopNestedScroll ");
+        Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll ");
         if (child.getTop() == mOffsetExpanded)
         {
             setStateInternal(STATE_EXPANDED);
+            Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll => STATE_EXPANDED");
             return;
         }
         if (mNestedScrollingChildRef == null || target != mNestedScrollingChildRef.get() || !mNestedScrolled)
@@ -527,11 +552,13 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             top = mOffsetExpanded;
             targetState = STATE_EXPANDED;
+            Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll => STATE_EXPANDED");
         }
-        else if (mHideable && shouldHide(child, getYVelocity()))
+        else if (mHideable && shouldHide(child, getXVelocity() ,getYVelocity()))
         {
             top = mOffsetHidden;
             targetState = STATE_HIDDEN;
+            Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll => STATE_HIDDEN");
         }
         else if (mLastNestedScrollDy == 0)
         {
@@ -540,17 +567,20 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             {
                 top = mOffsetExpanded;
                 targetState = STATE_EXPANDED;
+                Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll => STATE_EXPANDED");
             }
             else
             {
                 top = mOffsetCollapsed;
                 targetState = STATE_COLLAPSED;
+                Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll => STATE_COLLAPSED");
             }
         }
         else
         {
             top = mOffsetCollapsed;
             targetState = STATE_COLLAPSED;
+            Log.d(LOG_TAG,"*** DEPRECATED *** onStopNestedScroll => STATE_COLLAPSED");
         }
         if (mViewDragHelper.smoothSlideViewTo(child, child.getLeft(), top))
         {
@@ -768,9 +798,9 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         }
     }
     
-    boolean shouldHide(View child, float yvel)
+    boolean shouldHide(View child, float xvel, float yvel)
     {
-        Log.d(LOG_TAG,"shouldHide yvel [" + yvel + "] mSkipCollapsed [" + mSkipCollapsed + "]");
+        Log.d(LOG_TAG,"shouldHide xvel [" + xvel + "] yvel [" + yvel + "] mSkipCollapsed [" + mSkipCollapsed + "]");
         if (mSkipCollapsed)
         {
             Log.d(LOG_TAG,"shouldHide SKIP COLLAPSED => TRUE ");
@@ -797,9 +827,10 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @VisibleForTesting
     View findScrollingChild(View view)
     {
-        Log.d(LOG_TAG,"findScrollingChild ");
+        Log.d(LOG_TAG,"findScrollingChild [" + view + "]");
         if (ViewCompat.isNestedScrollingEnabled(view))
         {
+            Log.d(LOG_TAG,"findScrollingChild isNestedScrollingEnabled [true] => view [" + view +"]");
             return view;
         }
         if (view instanceof ViewGroup)
@@ -810,10 +841,12 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
                 View scrollingChild = findScrollingChild(group.getChildAt(i));
                 if (scrollingChild != null)
                 {
+                    Log.d(LOG_TAG,"findScrollingChild in child => view [" + view +"]");
                     return scrollingChild;
                 }
             }
         }
+        Log.d(LOG_TAG,"findScrollingChild in child => view [null]");
         return null;
     }
     
@@ -823,6 +856,14 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
         return mVelocityTracker.getYVelocity(mActivePointerId);
     }
+    
+    private float getXVelocity()
+    {
+        Log.d(LOG_TAG,"getXVelocity ");
+        mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+        return mVelocityTracker.getXVelocity(mActivePointerId);
+    }
+    
     
     void startSettlingAnimation(View child, int state)
     {
@@ -895,7 +936,7 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy)
         {
-            Log.d(LOG_TAG_CALLBACK,"onViewPositionChanged ");
+            Log.d(LOG_TAG_CALLBACK,"onViewPositionChanged left [" +left + "] top [" + top + "] dx [" + dx + "] dy [" + dy + "]");
             dispatchOnSlide(top);
         }
         
@@ -922,7 +963,7 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
                 top = mOffsetExpanded;
                 targetState = STATE_EXPANDED;
             }
-            else if (mHideable && shouldHide(releasedChild, yvel))
+            else if (mHideable && shouldHide(releasedChild, xvel, yvel))
             {
                 Log.d(LOG_TAG_CALLBACK,"onViewReleased xvel [" + xvel +"] yvel [" + yvel +"] => STATE_HIDDEN");
                 top = mOffsetHidden;
@@ -997,7 +1038,6 @@ public class NorthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     
     void dispatchOnSlide(int top)
     {
-        Log.d(LOG_TAG,"dispatchOnSlide ");
         View northSheet = mViewRef.get();
         if (northSheet != null && mCallback != null)
         {

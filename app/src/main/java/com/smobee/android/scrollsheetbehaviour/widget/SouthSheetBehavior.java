@@ -121,9 +121,9 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     
     private int mPeekHeightMin;
     
-    int mMinOffset;
+    int mOffsetExpanded;
     
-    int mMaxOffset;
+    int mOffsetCollapsed;
     
     boolean mHideable;
     
@@ -268,19 +268,19 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             peekHeight = mPeekHeight;
         }
-        // minOffset est l'offset a appliqué au sheet si il est expanded.
+        // mOffsetExpanded est l'offset a appliqué au sheet si il est expanded.
         // si la vue enfant est plus grande que la vue parent, alors l'offset est mis à 0 = top,left corner de la parent view.
         // si la vue enfant est plus petite que la vue parent, on la pousse au max vers le bas de l'écran ... pour avoir le bord bas de la vue enfant qui
         // coincide avec le bord bas de l'écran.
-        mMinOffset = Math.max(0, mParentHeight - child.getHeight());
-        // maxOffset est l'offset appliqué au sheet si il est collapsed ...
-        // il est soit égale à la hauteur du parent moins peeekHeight, soit à mMinOffset
-        // si la vue enfante est d'une hauteur plus petite que la valeur de peekHeight alors on prend mMinOffset : la vue ne couvre pas tout le parent mais
+        mOffsetExpanded = Math.max(0, mParentHeight - child.getHeight());
+        // mOffsetCollapsed est l'offset appliqué au sheet si il est collapsed ...
+        // il est soit égale à la hauteur du parent moins peeekHeight, soit à mOffsetExpanded
+        // si la vue enfante est d'une hauteur plus petite que la valeur de peekHeight alors on prend mOffsetExpanded : la vue ne couvre pas tout le parent mais
         // est poussée vers le bord bas de l'écran.
-        mMaxOffset = Math.max(mParentHeight - peekHeight, mMinOffset);
+        mOffsetCollapsed = Math.max(mParentHeight - peekHeight, mOffsetExpanded);
         if (mState == STATE_EXPANDED)
         {
-            ViewCompat.offsetTopAndBottom(child, mMinOffset);
+            ViewCompat.offsetTopAndBottom(child, mOffsetExpanded);
         }
         else if (mHideable && mState == STATE_HIDDEN)
         {
@@ -290,7 +290,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         else if (mState == STATE_COLLAPSED)
         {
             
-            ViewCompat.offsetTopAndBottom(child, mMaxOffset);
+            ViewCompat.offsetTopAndBottom(child, mOffsetCollapsed);
         }
         else if (mState == STATE_DRAGGING || mState == STATE_SETTLING)
         {
@@ -308,8 +308,10 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public boolean onInterceptTouchEvent(CoordinatorLayout parent, V child, MotionEvent event)
     {
+        Log.d(LOG_TAG,"onInterceptTouchEvent");
         if (!child.isShown())
         {
+            Log.d(LOG_TAG,"onInterceptTouchEvent child not shown. => FALSE");
             mIgnoreEvents = true;
             return false;
         }
@@ -317,6 +319,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         // Record the velocity
         if (action == MotionEvent.ACTION_DOWN)
         {
+            Log.d(LOG_TAG,"onInterceptTouchEvent => RESET");
             reset();
         }
         if (mVelocityTracker == null)
@@ -341,29 +344,32 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
                 int initialX = (int) event.getX();
                 mInitialY = (int) event.getY();
                 View scroll = mNestedScrollingChildRef != null ? mNestedScrollingChildRef.get() : null;
+                Log.d(LOG_TAG,"onInterceptTouchEvent ACTION_DOWN => scroll [" + scroll + "]");
                 if (scroll != null && parent.isPointInChildBounds(scroll, initialX, mInitialY))
                 {
                     mActivePointerId = event.getPointerId(event.getActionIndex());
                     mTouchingScrollingChild = true;
                 }
+                Log.d(LOG_TAG,"onInterceptTouchEvent ACTION_DOWN => scroll [" + scroll + "] mTouchingScrollingChild [" + mTouchingScrollingChild + "]");
                 mIgnoreEvents = mActivePointerId == MotionEvent.INVALID_POINTER_ID && !parent.isPointInChildBounds(child, initialX, mInitialY);
-                /*
-                if(mIgnoreEvents && mInitialY > mMaxOffset && mHideable && mState == STATE_HIDDEN)
-                {
-                    setState(STATE_EXPANDED);
-                }
-                */
+                Log.d(LOG_TAG,"onInterceptTouchEvent ACTION_DOWN => mIgnoreEvents [" + mIgnoreEvents + "]");
                 break;
         }
+    
+        Log.d(LOG_TAG,"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] dragHelperIntercept [" + mViewDragHelper.shouldInterceptTouchEvent(event) + "] ");
         if (!mIgnoreEvents && mViewDragHelper.shouldInterceptTouchEvent(event))
         {
+            Log.d(LOG_TAG,"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] dragHelperIntercept [" + mViewDragHelper.shouldInterceptTouchEvent(event) + "] => TRUE ");
             return true;
         }
         // We have to handle cases that the ViewDragHelper does not capture the bottom sheet because
         // it is not the top most view of its parent. This is not necessary when the touch event is
         // happening over the scrolling content as nested scrolling logic handles that case.
         View scroll = mNestedScrollingChildRef.get();
-        return action == MotionEvent.ACTION_MOVE && scroll != null && !mIgnoreEvents && mState != STATE_DRAGGING && !parent.isPointInChildBounds(scroll, (int) event.getX(), (int) event.getY()) && Math.abs(mInitialY - event.getY()) > mViewDragHelper.getTouchSlop();
+        
+        boolean intercepted = action == MotionEvent.ACTION_MOVE && scroll != null && !mIgnoreEvents && mState != STATE_DRAGGING && !parent.isPointInChildBounds(scroll, (int) event.getX(), (int) event.getY()) && Math.abs(mInitialY - event.getY()) > mViewDragHelper.getTouchSlop();
+        Log.d(LOG_TAG,"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] => intercepted [" + intercepted + "]");
+        return intercepted;
     }
     
     @Override
@@ -378,7 +384,11 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             return true;
         }
-        mViewDragHelper.processTouchEvent(event);
+        
+        if (mViewDragHelper != null)
+        {
+            mViewDragHelper.processTouchEvent(event);
+        }
         // Record the velocity
         if (action == MotionEvent.ACTION_DOWN)
         {
@@ -413,6 +423,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public void onNestedPreScroll(CoordinatorLayout coordinatorLayout, V child, View target, int dx, int dy, int[] consumed)
     {
+        Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll dx [" + dx + "] dy [" + dy + "]" );
         View scrollingChild = mNestedScrollingChildRef.get();
         if (target != scrollingChild)
         {
@@ -420,37 +431,52 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         }
         int currentTop = child.getTop();
         int newTop = currentTop - dy;
+        // Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] mOffsetCollapsed [" + mOffsetCollapsed + "]");
         if (dy > 0)
-        { // Upward
-            if (newTop < mMinOffset)
+        {
+            // Upward
+            if (newTop < mOffsetExpanded)
             {
-                consumed[1] = currentTop - mMinOffset;
+                consumed[1] = currentTop - mOffsetExpanded;
+                Log.w(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll UPWARD moveOffset [" + (-consumed[1]) + "] EXPANDED");
                 ViewCompat.offsetTopAndBottom(child, -consumed[1]);
                 setStateInternal(STATE_EXPANDED);
+                // Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll UPWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] offset [" + (-consumed[1]) + "] EXPANDED");
             }
             else
             {
                 consumed[1] = dy;
+                Log.w(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll UPWARD moveOffset [" + (-dy) + "] DRAGGING");
                 ViewCompat.offsetTopAndBottom(child, -dy);
                 setStateInternal(STATE_DRAGGING);
+                // Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll UPWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetExpanded [" + mOffsetExpanded + "] offset [" + (-dy) + "] DRAGGING");
             }
         }
         else if (dy < 0)
         { // Downward
             if (!target.canScrollVertically(-1))
             {
-                if (newTop <= mMaxOffset || mHideable)
+                
+                if (newTop <= mOffsetCollapsed || mHideable)
                 {
                     consumed[1] = dy;
+                    Log.w(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset [" + (-dy) + "] DRAGGING");
                     ViewCompat.offsetTopAndBottom(child, -dy);
                     setStateInternal(STATE_DRAGGING);
+                    // Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll DOWNWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetCollapsed [" + mOffsetCollapsed + "] offset [" + (-dy) + "] DRAGGING");
                 }
                 else
                 {
-                    consumed[1] = currentTop - mMaxOffset;
+                    consumed[1] = currentTop - mOffsetCollapsed;
+                    Log.w(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset [" + (-consumed[1]) + "] COLLAPSED");
                     ViewCompat.offsetTopAndBottom(child, -consumed[1]);
                     setStateInternal(STATE_COLLAPSED);
+                    // Log.d(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll DOWNWARD currentTop [" + currentTop + "] newTop [" + newTop + "] mOffsetCollapsed [" + mOffsetCollapsed + "] offset [" + (-consumed[1]) + "] COLLAPSED");
                 }
+            }
+            else
+            {
+                Log.e(LOG_TAG,"*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset IGNORED");
             }
         }
         dispatchOnSlide(child.getTop());
@@ -461,7 +487,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
     @Override
     public void onStopNestedScroll(CoordinatorLayout coordinatorLayout, V child, View target)
     {
-        if (child.getTop() == mMinOffset)
+        if (child.getTop() == mOffsetExpanded)
         {
             setStateInternal(STATE_EXPANDED);
             return;
@@ -474,7 +500,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         int targetState;
         if (mLastNestedScrollDy > 0)
         {
-            top = mMinOffset;
+            top = mOffsetExpanded;
             targetState = STATE_EXPANDED;
         }
         else if (mHideable && shouldHide(child, getYVelocity()))
@@ -485,20 +511,20 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         else if (mLastNestedScrollDy == 0)
         {
             int currentTop = child.getTop();
-            if (Math.abs(currentTop - mMinOffset) < Math.abs(currentTop - mMaxOffset))
+            if (Math.abs(currentTop - mOffsetExpanded) < Math.abs(currentTop - mOffsetCollapsed))
             {
-                top = mMinOffset;
+                top = mOffsetExpanded;
                 targetState = STATE_EXPANDED;
             }
             else
             {
-                top = mMaxOffset;
+                top = mOffsetCollapsed;
                 targetState = STATE_COLLAPSED;
             }
         }
         else
         {
-            top = mMaxOffset;
+            top = mOffsetCollapsed;
             targetState = STATE_COLLAPSED;
         }
         if (mViewDragHelper.smoothSlideViewTo(child, child.getLeft(), top))
@@ -542,7 +568,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             mPeekHeightAuto = false;
             mPeekHeight = Math.max(0, peekHeight);
-            mMaxOffset = mParentHeight - peekHeight;
+            mOffsetCollapsed = mParentHeight - peekHeight;
             layout = true;
         }
         if (layout && mState == STATE_COLLAPSED && mViewRef != null)
@@ -711,20 +737,22 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             return true;
         }
-        if (child.getTop() < mMaxOffset)
+        if (child.getTop() < mOffsetCollapsed)
         {
             // It should not hide, but collapse.
             return false;
         }
         final float newTop = child.getTop() + yvel * HIDE_FRICTION;
-        return Math.abs(newTop - mMaxOffset) / (float) mPeekHeight > HIDE_THRESHOLD;
+        return Math.abs(newTop - mOffsetCollapsed) / (float) mPeekHeight > HIDE_THRESHOLD;
     }
     
     @VisibleForTesting
     View findScrollingChild(View view)
     {
+        Log.d(LOG_TAG,"findScrollingChild [" + view + "]");
         if (ViewCompat.isNestedScrollingEnabled(view))
         {
+            Log.d(LOG_TAG,"findScrollingChild isNestedScrollingEnabled [true] => view [" + view +"]");
             return view;
         }
         if (view instanceof ViewGroup)
@@ -735,10 +763,12 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
                 View scrollingChild = findScrollingChild(group.getChildAt(i));
                 if (scrollingChild != null)
                 {
+                    Log.d(LOG_TAG,"findScrollingChild in child => view [" + view +"]");
                     return scrollingChild;
                 }
             }
         }
+        Log.d(LOG_TAG,"findScrollingChild in child => view [null]");
         return null;
     }
     
@@ -754,11 +784,11 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         
         if (state == STATE_COLLAPSED)
         {
-            top = mMaxOffset;
+            top = mOffsetCollapsed;
         }
         else if (state == STATE_EXPANDED)
         {
-            top = mMinOffset;
+            top = mOffsetExpanded;
         }
         else if (mHideable && state == STATE_HIDDEN)
         {
@@ -829,7 +859,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             @SouthSheetBehavior.State int targetState;
             if (yvel < 0)
             { // Moving up
-                top = mMinOffset;
+                top = mOffsetExpanded;
                 targetState = STATE_EXPANDED;
             }
             else if (mHideable && shouldHide(releasedChild, yvel))
@@ -840,20 +870,20 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
             else if (yvel == 0.f)
             {
                 int currentTop = releasedChild.getTop();
-                if (Math.abs(currentTop - mMinOffset) < Math.abs(currentTop - mMaxOffset))
+                if (Math.abs(currentTop - mOffsetExpanded) < Math.abs(currentTop - mOffsetCollapsed))
                 {
-                    top = mMinOffset;
+                    top = mOffsetExpanded;
                     targetState = STATE_EXPANDED;
                 }
                 else
                 {
-                    top = mMaxOffset;
+                    top = mOffsetCollapsed;
                     targetState = STATE_COLLAPSED;
                 }
             }
             else
             {
-                top = mMaxOffset;
+                top = mOffsetCollapsed;
                 targetState = STATE_COLLAPSED;
             }
             if (mViewDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top))
@@ -870,7 +900,7 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         @Override
         public int clampViewPositionVertical(View child, int top, int dy)
         {
-            return MathUtils.clamp(top, mMinOffset, mHideable ? mParentHeight : mMaxOffset);
+            return MathUtils.clamp(top, mOffsetExpanded, mHideable ? mParentHeight : mOffsetCollapsed);
         }
         
         @Override
@@ -884,11 +914,11 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         {
             if (mHideable)
             {
-                return mParentHeight - mMinOffset;
+                return mParentHeight - mOffsetExpanded;
             }
             else
             {
-                return mMaxOffset - mMinOffset;
+                return mOffsetCollapsed - mOffsetExpanded;
             }
         }
     };
@@ -898,13 +928,13 @@ public class SouthSheetBehavior<V extends View> extends CoordinatorLayout.Behavi
         View southSheet = mViewRef.get();
         if (southSheet != null && mCallback != null)
         {
-            if (top > mMaxOffset)
+            if (top > mOffsetCollapsed)
             {
-                mCallback.onSouthSheetSlide(southSheet,(float) (mMaxOffset - top) /(mParentHeight - mMaxOffset));
+                mCallback.onSouthSheetSlide(southSheet,(float) (mOffsetCollapsed - top) /(mParentHeight - mOffsetCollapsed));
             }
             else
             {
-                mCallback.onSouthSheetSlide(southSheet,(float) (mMaxOffset - top) / ((mMaxOffset - mMinOffset)));
+                mCallback.onSouthSheetSlide(southSheet,(float) (mOffsetCollapsed - top) / ((mOffsetCollapsed - mOffsetExpanded)));
             }
         }
     }

@@ -46,4 +46,24 @@
         <!-- Skip the collapsed state once expanded; no effect unless it is hideable -->
         <attr name="south_behavior_skipCollapsed" format="boolean"/>
     </declare-styleable>
+
+    <declare-styleable name="SheetBehavior_Layout">
+        <!-- The height of the bottom sheet when it is collapsed. -->
+        <attr name="sheet_behavior_peekSize" format="dimension">
+            <!-- Peek at the 16:9 ratio keyline of its parent -->
+            <enum name="auto" value="-1"/>
+        </attr>
+        <!-- Whether this bottom sheet can be hidden by dragging it further downwards -->
+        <attr name="sheet_behavior_hideable" format="boolean"/>
+        <!-- Skip the collapsed state once expanded; no effect unless it is hideable -->
+        <attr name="sheet_behavior_skipCollapsed" format="boolean"/>
+        <attr name="sheet_behavior_position" format="enum">
+            <enum name="NORTH" value="1"/>
+            <enum name="SOUTH" value="2"/>
+            <enum name="EAST" value="3"/>
+            <enum name="WEST" value="4"/>
+        </attr>
+        <attr name="sheet_behavior_identifier_name" format="string"/>
+    </declare-styleable>
+
 </resources>

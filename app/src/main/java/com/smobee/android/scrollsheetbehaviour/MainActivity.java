@@ -1,34 +1,29 @@
 package com.smobee.android.scrollsheetbehaviour;
 
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 
 import com.smobee.android.scrollsheetbehaviour.widget.EastSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.NorthSheetBehavior;
+import com.smobee.android.scrollsheetbehaviour.widget.SheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.SouthSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.WestSheetBehavior;
 import android.view.GestureDetector.OnGestureListener;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnGestureListener
 {
@@ -38,10 +33,21 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
     FrameLayout eastSheet;
     FrameLayout northSheet;
     
-    ListView northListView;
-    ListView southListView;
-    ListView eastListView;
-    ListView westListView;
+    private RecyclerView northRecyclerView;
+    private RecyclerView.Adapter northAdapter;
+    private RecyclerView.LayoutManager northLayoutManager;
+    
+    private RecyclerView southRecyclerView;
+    private RecyclerView.Adapter southAdapter;
+    private RecyclerView.LayoutManager southLayoutManager;
+    
+    private RecyclerView eastRecyclerView;
+    private RecyclerView.Adapter eastAdapter;
+    private RecyclerView.LayoutManager eastLayoutManager;
+    
+    private RecyclerView westRecyclerView;
+    private RecyclerView.Adapter westAdapter;
+    private RecyclerView.LayoutManager westLayoutManager;
     
     
     private CoordinatorLayout  coordinatorLayout;
@@ -56,190 +62,92 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        
-        this.southSheet = (FrameLayout) findViewById(R.id.south_sheet);
-        this.westSheet = (FrameLayout) findViewById(R.id.west_sheet);
-        this.eastSheet = (FrameLayout) findViewById(R.id.east_sheet);
-        this.northSheet = (FrameLayout) findViewById(R.id.north_sheet);
-        
-        this.northListView = (ListView) findViewById(R.id.list_view_north);
-        this.southListView = (ListView) findViewById(R.id.list_view_south);
-        this.eastListView = (ListView) findViewById(R.id.list_view_east);
-        this.westListView = (ListView) findViewById(R.id.list_view_west);
     
-    
-        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
-                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
-                "Linux", "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux",
-                "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2",
-                "Android", "iPhone", "WindowsMobile", "OpenStep", "NeXTStep", "HP-UX", "AIX", "Mach III", "BeOS", "Heroku" };
+        String[] values = new String[]{
+                "Android", "iPhone", "WindowsMobile", "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2", "Android", "iPhone", "WindowsMobile", "OpenStep", "NeXTStep", "HP-UX", "AIX", "Mach III", "BeOS", "Heroku"
+        };
     
         final ArrayList<String> listEast = new ArrayList<String>();
-        for (int i = 0; i < values.length; ++i) {
+        for (int i = 0; i < values.length; ++i)
+        {
             listEast.add(values[i]);
         }
     
         final ArrayList<String> listWest = new ArrayList<String>();
-        for (int i = 0; i < values.length; ++i) {
+        for (int i = 0; i < values.length; ++i)
+        {
             listWest.add(values[i]);
         }
     
         final ArrayList<String> listNorth = new ArrayList<String>();
-        for (int i = 0; i < values.length; ++i) {
+        for (int i = 0; i < values.length; ++i)
+        {
             listNorth.add(values[i]);
         }
     
         final ArrayList<String> listSouth = new ArrayList<String>();
-        for (int i = 0; i < values.length; ++i) {
+        for (int i = 0; i < values.length; ++i)
+        {
             listSouth.add(values[i]);
         }
-        
-        final StableArrayAdapter northAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listNorth);
-        final StableArrayAdapter southAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listSouth);
-        final StableArrayAdapter eastAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listEast);
-        final StableArrayAdapter westAdapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, listWest);
+    
+        this.southSheet = (FrameLayout) findViewById(R.id.south_sheet);
+        this.westSheet = (FrameLayout) findViewById(R.id.west_sheet);
+        this.eastSheet = (FrameLayout) findViewById(R.id.east_sheet);
+        this.northSheet = (FrameLayout) findViewById(R.id.north_sheet);
+    
+        this.northRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_north);
+        this.northRecyclerView.setHasFixedSize(true);
+        this.northLayoutManager = new LinearLayoutManager(this);
+        this.northRecyclerView.setLayoutManager(this.northLayoutManager);
+        this.northAdapter = new NorthAdapter(listNorth);
+        this.northRecyclerView.setAdapter(this.northAdapter);
+    
+        this.southRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_south);
+        this.southRecyclerView.setHasFixedSize(true);
+        this.southLayoutManager = new LinearLayoutManager(this);
+        this.southRecyclerView.setLayoutManager(this.southLayoutManager);
+        this.southAdapter = new SouthAdapter(listSouth);
+        this.southRecyclerView.setAdapter(this.southAdapter);
+    
+        this.eastRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_east);
+        this.eastRecyclerView.setHasFixedSize(true);
+        this.eastLayoutManager = new LinearLayoutManager(this);
+        this.eastRecyclerView.setLayoutManager(this.eastLayoutManager);
+        this.eastAdapter = new EastAdapter(listSouth);
+        this.eastRecyclerView.setAdapter(this.eastAdapter);
+    
+        this.westRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_west);
+        this.westRecyclerView.setHasFixedSize(true);
+        this.westLayoutManager = new LinearLayoutManager(this);
+        this.westRecyclerView.setLayoutManager(this.westLayoutManager);
+        this.westAdapter = new WestAdapter(listSouth);
+        this.westRecyclerView.setAdapter(this.westAdapter);
     
     
-        this.northListView.setAdapter(northAdapter);
-    
-        this.northListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        
-            @Override
-            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
-            {
-                final String item = (String) parent.getItemAtPosition(position);
-                view.animate().setDuration(2000).alpha(0)
-                        .withEndAction(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                listNorth.remove(item);
-                                northAdapter.notifyDataSetChanged();
-                                view.setAlpha(1);
-                            }
-                        });
-            }
-        });
-    
-    
-        this.southListView.setAdapter(southAdapter);
-    
-        this.southListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        
-            @Override
-            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
-            {
-                final String item = (String) parent.getItemAtPosition(position);
-                view.animate().setDuration(2000).alpha(0)
-                        .withEndAction(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                listSouth.remove(item);
-                                southAdapter.notifyDataSetChanged();
-                                view.setAlpha(1);
-                            }
-                        });
-            }
-        });
-    
-        this.eastListView.setAdapter(eastAdapter);
-    
-        this.eastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        
-            @Override
-            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
-            {
-                final String item = (String) parent.getItemAtPosition(position);
-                view.animate().setDuration(2000).alpha(0)
-                        .withEndAction(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                listEast.remove(item);
-                                eastAdapter.notifyDataSetChanged();
-                                view.setAlpha(1);
-                            }
-                        });
-            }
-        });
-    
-        this.westListView.setAdapter(westAdapter);
-    
-        this.westListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        
-            @Override
-            public void onItemClick(AdapterView<?> parent, final View view, int position, long id)
-            {
-                final String item = (String) parent.getItemAtPosition(position);
-                view.animate().setDuration(2000).alpha(0)
-                        .withEndAction(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                listWest.remove(item);
-                                westAdapter.notifyDataSetChanged();
-                                view.setAlpha(1);
-                            }
-                        });
-            }
-        });
-        
         this.coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout);
     
         gestureDetector = new GestureDetector(this, this);
-        
+    
         // SOUTH
-        SouthSheetBehavior southSheetBehavior = SouthSheetBehavior.from(southSheet);
+        SheetBehavior southSheetBehavior = SheetBehavior.from(southSheet);
         this.sheetsManager.setSouthSheetBehavior(southSheetBehavior);
-        
+    
         // NORTH
-        NorthSheetBehavior northSheetBehavior = NorthSheetBehavior.from(northSheet);
+        SheetBehavior northSheetBehavior = SheetBehavior.from(northSheet);
         this.sheetsManager.setNorthSheetBehavior(northSheetBehavior);
-        
+    
         // WEST
-        WestSheetBehavior westSheetBehavior = WestSheetBehavior.from(westSheet);
+        SheetBehavior westSheetBehavior = SheetBehavior.from(westSheet);
         this.sheetsManager.setWestSheetBehavior(westSheetBehavior);
-        
+    
         // EAST
-        EastSheetBehavior eastSheetBehavior = EastSheetBehavior.from(eastSheet);
+        SheetBehavior eastSheetBehavior = SheetBehavior.from(eastSheet);
         this.sheetsManager.setEastSheetBehavior(eastSheetBehavior);
     
         this.sheetsManager.setup();
     }
     
-    private class StableArrayAdapter extends ArrayAdapter<String>
-    {
-    
-        HashMap<String, Integer> mIdMap = new HashMap<String, Integer>();
-    
-        public StableArrayAdapter(Context context, int textViewResourceId, List<String> objects)
-        {
-            super(context, textViewResourceId, objects);
-            for (int i = 0; i < objects.size(); ++i)
-            {
-                mIdMap.put(objects.get(i), i);
-            }
-        }
-    
-        @Override
-        public long getItemId(int position)
-        {
-            String item = getItem(position);
-            return mIdMap.get(item);
-        }
-    
-        @Override
-        public boolean hasStableIds()
-        {
-            return true;
-        }
-    }
     
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
@@ -383,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
     }
     
     
-    private static class SheetsManager implements SouthSheetBehavior.SouthSheetCallback, NorthSheetBehavior.NorthSheetCallback, WestSheetBehavior.WestSheetCallback, EastSheetBehavior.EastSheetCallback
+    private static class SheetsManager implements SheetBehavior.SheetCallback
     {
         
         public enum SwipeDirection
@@ -394,85 +302,85 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
             SWIPE_UP
         }
     
-        private SouthSheetBehavior southSheetBehavior;
-        private WestSheetBehavior  westSheetBehavior;
-        private NorthSheetBehavior northSheetBehavior;
-        private EastSheetBehavior  eastSheetBehavior;
+        private SheetBehavior southSheetBehavior;
+        private SheetBehavior westSheetBehavior;
+        private SheetBehavior northSheetBehavior;
+        private SheetBehavior eastSheetBehavior;
     
     
-        public SouthSheetBehavior getSouthSheetBehavior()
+        public SheetBehavior getSouthSheetBehavior()
         {
             return southSheetBehavior;
         }
     
-        public void setSouthSheetBehavior(SouthSheetBehavior southSheetBehavior)
+        public void setSouthSheetBehavior(SheetBehavior southSheetBehavior)
         {
             if(this.southSheetBehavior != null)
             {
-                this.southSheetBehavior.setSouthSheetCallback(null);
+                this.southSheetBehavior.setSheetCallback(null);
             }
             
             this.southSheetBehavior = southSheetBehavior;
             if(this.southSheetBehavior != null)
             {
-                this.southSheetBehavior.setSouthSheetCallback(this);
+                this.southSheetBehavior.setSheetCallback(this);
             }
         }
     
-        public WestSheetBehavior getWestSheetBehavior()
+        public SheetBehavior getWestSheetBehavior()
         {
             return westSheetBehavior;
         }
     
-        public void setWestSheetBehavior(WestSheetBehavior westSheetBehavior)
+        public void setWestSheetBehavior(SheetBehavior westSheetBehavior)
         {
             if(this.westSheetBehavior != null)
             {
-                this.westSheetBehavior.setWestSheetCallback(null);
+                this.westSheetBehavior.setSheetCallback(null);
             }
     
             this.westSheetBehavior = westSheetBehavior;
             if(this.westSheetBehavior != null)
             {
-                this.westSheetBehavior.setWestSheetCallback(this);
+                this.westSheetBehavior.setSheetCallback(this);
             }
         }
     
-        public NorthSheetBehavior getNorthSheetBehavior()
+        public SheetBehavior getNorthSheetBehavior()
         {
             return northSheetBehavior;
         }
     
-        public void setNorthSheetBehavior(NorthSheetBehavior northSheetBehavior)
+        public void setNorthSheetBehavior(SheetBehavior northSheetBehavior)
         {
             if(this.northSheetBehavior != null)
             {
-                this.northSheetBehavior.setNorthSheetCallback(null);
+                this.northSheetBehavior.setSheetCallback(null);
             }
     
             this.northSheetBehavior = northSheetBehavior;
             if(this.northSheetBehavior != null)
             {
-                this.northSheetBehavior.setNorthSheetCallback(this);
+                this.northSheetBehavior.setSheetCallback(this);
             }
         }
     
-        public EastSheetBehavior getEastSheetBehavior()
+        public SheetBehavior getEastSheetBehavior()
         {
             return eastSheetBehavior;
         }
     
-        public void setEastSheetBehavior(EastSheetBehavior eastSheetBehavior)
+        public void setEastSheetBehavior(SheetBehavior eastSheetBehavior)
         {
             if(this.eastSheetBehavior != null)
             {
-                this.eastSheetBehavior.setEastSheetCallback(null);
+                this.eastSheetBehavior.setSheetCallback(null);
             }
     
             this.eastSheetBehavior = eastSheetBehavior;
             if(this.eastSheetBehavior != null)
             {
-                this.eastSheetBehavior.setEastSheetCallback(this);
+                this.eastSheetBehavior.setSheetCallback(this);
             }
         }
     
@@ -485,44 +393,39 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
          *                  {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
          */
         @Override
-        public void onWestSheetStateChanged(@NonNull View westSheet, int newState)
+        public void onSheetStateChanged(@NonNull View westSheet, int newState, String identifierName)
         {
             // React to state change
             switch (newState)
             {
-                case WestSheetBehavior.STATE_EXPANDED:
+                case SheetBehavior.STATE_EXPANDED:
                 {
-                    Log.w(LOG_TAG, "onStateChanged: WEST STATE_EXPANDED");
+                    Log.w(LOG_TAG, "onStateChanged: STATE_EXPANDED idenfifier [" + identifierName + "]");
                     break;
                 }
-                case WestSheetBehavior.STATE_SETTLING:
+                case SheetBehavior.STATE_SETTLING:
                 {
-                    Log.w(LOG_TAG, "onStateChanged: WEST STATE_SETTLING");
+                    Log.w(LOG_TAG, "onStateChanged: STATE_SETTLING idenfifier [" + identifierName + "]");
                     break;
                 }
-                case WestSheetBehavior.PEEK_WIDTH_AUTO:
+                case SheetBehavior.STATE_COLLAPSED:
                 {
-                    Log.w(LOG_TAG, "onStateChanged: WEST PEEK_WIDTH_AUTO");
+                    Log.w(LOG_TAG, "onStateChanged: STATE_COLLAPSED idenfifier [" + identifierName + "]");
                     break;
                 }
-                case WestSheetBehavior.STATE_COLLAPSED:
+                case SheetBehavior.STATE_DRAGGING:
                 {
-                    Log.w(LOG_TAG, "onStateChanged: WEST STATE_COLLAPSED");
+                    Log.w(LOG_TAG, "onStateChanged: STATE_DRAGGING idenfifier [" + identifierName + "]");
                     break;
                 }
-                case WestSheetBehavior.STATE_DRAGGING:
+                case SheetBehavior.STATE_HIDDEN:
                 {
-                    Log.w(LOG_TAG, "onStateChanged: WEST STATE_DRAGGING");
-                    break;
-                }
-                case WestSheetBehavior.STATE_HIDDEN:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: WEST STATE_HIDDEN");
+                    Log.w(LOG_TAG, "onStateChanged: STATE_HIDDEN idenfifier [" + identifierName + "]");
                     break;
                 }
                 default:
                 {
-                    Log.e(LOG_TAG, "onStateChanged: WEST default (Should not be called)");
+                    Log.e(LOG_TAG, "onStateChanged: default (Should not be called) idenfifier [" + identifierName + "]");
                     break;
                 }
             }
@@ -537,210 +440,30 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
          *                    is between collapsed and expanded states and from -1 to 0 it is
          */
         @Override
-        public void onWestSheetSlide(@NonNull View westSheet, float slideOffset)
+        public void onSheetSlide(@NonNull View westSheet, float slideOffset, String identifierName)
         {
-            Log.w(LOG_TAG, "onWestSheetSlide");
+            Log.w(LOG_TAG, "onSheetSlide slideOffset [" + slideOffset + "] idenfifier [" + identifierName + "]");
         }
     
-        /**
-         * Called when the east sheet changes its state.
-         *
-         * @param eastSheet The east sheet view.
-         * @param newState  The new state. This will be one of {@link #STATE_DRAGGING},
-         *                  {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
-         *                  {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
-         */
-        @Override
-        public void onEastSheetStateChanged(@NonNull View eastSheet, int newState)
-        {
-            // React to state change
-            switch (newState)
-            {
-                case EastSheetBehavior.STATE_EXPANDED:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: EAST STATE_EXPANDED");
-                    break;
-                }
-                case EastSheetBehavior.STATE_SETTLING:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: EAST STATE_SETTLING");
-                    break;
-                }
-                case EastSheetBehavior.PEEK_WIDTH_AUTO:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: EAST PEEK_WIDTH_AUTO");
-                    break;
-                }
-                case EastSheetBehavior.STATE_COLLAPSED:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: EAST STATE_COLLAPSED");
-                    break;
-                }
-                case EastSheetBehavior.STATE_DRAGGING:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: EAST STATE_DRAGGING");
-                    break;
-                }
-                case EastSheetBehavior.STATE_HIDDEN:
-                {
-                    Log.w(LOG_TAG, "onStateChanged: EAST STATE_HIDDEN");
-                    break;
-                }
-                default:
-                {
-                    Log.e(LOG_TAG, "onStateChanged: EAST default (Should not be called)");
-                    break;
-                }
-            }
-        }
-    
-        /**
-         * Called when the east sheet is being dragged.
-         *
-         * @param eastSheet   The east sheet view.
-         * @param slideOffset The new offset of this east sheet within [-1,1] range. Offset
-         *                    increases as this right sheet is moving left. From 0 to 1 the sheet
-         *                    is between collapsed and expanded states and from -1 to 0 it is
-         */
-        @Override
-        public void onEastSheetSlide(@NonNull View eastSheet, float slideOffset)
-        {
-            Log.w(LOG_TAG, "onEastSheetSlide");
-        }
-    
-        /**
-         * Called when the north sheet changes its state.
-         *
-         * @param northSheet The north sheet view.
-         * @param newState   The new state. This will be one of {@link #STATE_DRAGGING},
-         *                   {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
-         *                   {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
-         */
-        @Override
-        public void onNorthSheetStateChanged(@NonNull View northSheet, int newState)
-        {
-            // React to state change
-            switch (newState) {
-                case NorthSheetBehavior.STATE_EXPANDED: {
-                    Log.w(LOG_TAG, "onStateChanged: NORTH STATE_EXPANDED");
-                    break;
-                }
-                case NorthSheetBehavior.STATE_SETTLING: {
-                    Log.w(LOG_TAG, "onStateChanged: NORTH STATE_SETTLING");
-                    break;
-                }
-                case NorthSheetBehavior.PEEK_HEIGHT_AUTO: {
-                    Log.w(LOG_TAG, "onStateChanged: NORTH PEEK_HEIGHT_AUTO");
-                    break;
-                }
-                case NorthSheetBehavior.STATE_COLLAPSED: {
-                    Log.w(LOG_TAG, "onStateChanged: NORTH STATE_COLLAPSED");
-                    break;
-                }
-                case NorthSheetBehavior.STATE_DRAGGING: {
-                    Log.w(LOG_TAG, "onStateChanged: NORTH STATE_DRAGGING");
-                    break;
-                }
-                case NorthSheetBehavior.STATE_HIDDEN: {
-                    Log.w(LOG_TAG, "onStateChanged: NORTH STATE_HIDDEN");
-                    break;
-                }
-                default: {
-                    Log.e(LOG_TAG, "onStateChanged: NORTH default (Should not be called)");
-                    break;
-                }
-            }
-        }
-    
-        /**
-         * Called when the north sheet is being dragged.
-         *
-         * @param northSheet  The north sheet view.
-         * @param slideOffset The new offset of this top sheet within [-1,1] range. Offset
-         *                    increases as this bottom sheet is moving upward. From 0 to 1 the sheet
-         *                    is between collapsed and expanded states and from -1 to 0 it is
-         */
-        @Override
-        public void onNorthSheetSlide(@NonNull View northSheet, float slideOffset)
-        {
-            Log.w(LOG_TAG, "onNorthSheetSlide");
-        }
-    
-        /**
-         * Called when the south sheet changes its state.
-         *
-         * @param southSheet The south sheet view.
-         * @param newState   The new state. This will be one of {@link #STATE_DRAGGING},
-         *                   {@link #STATE_SETTLING}, {@link #STATE_EXPANDED},
-         *                   {@link #STATE_COLLAPSED}, or {@link #STATE_HIDDEN}.
-         */
-        @Override
-        public void onSouthSheetStateChanged(@NonNull View southSheet, int newState)
-        {
-            switch (newState) {
-                case SouthSheetBehavior.STATE_EXPANDED: {
-                    Log.w(LOG_TAG, "onStateChanged: SOUTH STATE_EXPANDED");
-                    break;
-                }
-                case SouthSheetBehavior.STATE_SETTLING: {
-                    Log.w(LOG_TAG, "onStateChanged: SOUTH STATE_SETTLING");
-                    break;
-                }
-                case SouthSheetBehavior.PEEK_HEIGHT_AUTO: {
-                    Log.w(LOG_TAG, "onStateChanged: SOUTH PEEK_HEIGHT_AUTO");
-                    break;
-                }
-                case SouthSheetBehavior.STATE_COLLAPSED: {
-                    Log.w(LOG_TAG, "onStateChanged: SOUTH STATE_COLLAPSED");
-                    break;
-                }
-                case SouthSheetBehavior.STATE_DRAGGING: {
-                    Log.w(LOG_TAG, "onStateChanged: SOUTH STATE_DRAGGING");
-                    break;
-                }
-                case SouthSheetBehavior.STATE_HIDDEN: {
-                    Log.w(LOG_TAG, "onStateChanged: SOUTH STATE_HIDDEN");
-                    break;
-                }
-                default: {
-                    Log.e(LOG_TAG, "onStateChanged: SOUTH default (Should not be called)");
-                    break;
-                }
-            }
-        }
-    
-        /**
-         * Called when the bottom sheet is being dragged.
-         *
-         * @param southSheet  The south sheet view.
-         * @param slideOffset The new offset of this south sheet within [-1,1] range. Offset
-         *                    increases as this south sheet is moving upward. From 0 to 1 the sheet
-         *                    is between collapsed and expanded states and from -1 to 0 it is
-         */
-        @Override
-        public void onSouthSheetSlide(@NonNull View southSheet, float slideOffset)
-        {
-            Log.w(LOG_TAG, "onSouthSheetSlide");
-        }
         
         public void setup()
         {
-            southSheetBehavior.setState(SouthSheetBehavior.STATE_HIDDEN);
+            southSheetBehavior.setState(SheetBehavior.STATE_HIDDEN);
             // southSheetBehavior.setPeekHeight(150);
             southSheetBehavior.setHideable(true);
             southSheetBehavior.setSkipCollapsed(true);
     
-            northSheetBehavior.setState(NorthSheetBehavior.STATE_HIDDEN);
+            northSheetBehavior.setState(SheetBehavior.STATE_HIDDEN);
             // northSheetBehavior.setPeekHeight(150);
             northSheetBehavior.setHideable(true);
             northSheetBehavior.setSkipCollapsed(true);
     
-            westSheetBehavior.setState(WestSheetBehavior.STATE_HIDDEN);
+            westSheetBehavior.setState(SheetBehavior.STATE_HIDDEN);
             // westSheetBehavior.setPeekWidth(150);
             westSheetBehavior.setHideable(true);
             westSheetBehavior.setSkipCollapsed(true);
     
-            eastSheetBehavior.setState(EastSheetBehavior.STATE_HIDDEN);
+            eastSheetBehavior.setState(SheetBehavior.STATE_HIDDEN);
             // eastSheetBehavior.setPeekWidth(150);
             eastSheetBehavior.setHideable(true);
             eastSheetBehavior.setSkipCollapsed(true);
@@ -748,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
         
         private boolean shouldHandleSwipe()
         {
-            if(eastSheetBehavior.getState() == EastSheetBehavior.STATE_HIDDEN && westSheetBehavior.getState() == WestSheetBehavior.STATE_HIDDEN && southSheetBehavior.getState() == SouthSheetBehavior.STATE_HIDDEN && northSheetBehavior.getState() == NorthSheetBehavior.STATE_HIDDEN )
+            if(eastSheetBehavior.getState() == SheetBehavior.STATE_HIDDEN && westSheetBehavior.getState() == SheetBehavior.STATE_HIDDEN && southSheetBehavior.getState() == SheetBehavior.STATE_HIDDEN && northSheetBehavior.getState() == SheetBehavior.STATE_HIDDEN )
                 return true;
             else
                 return false;
@@ -762,22 +485,22 @@ public class MainActivity extends AppCompatActivity implements OnGestureListener
                 {
                     case SWIPE_UP:
                     {
-                        southSheetBehavior.setState(SouthSheetBehavior.STATE_EXPANDED);
+                        southSheetBehavior.setState(SheetBehavior.STATE_EXPANDED);
                         return true;
                     }
                     case SWIPE_DOWN:
                     {
-                        northSheetBehavior.setState(NorthSheetBehavior.STATE_EXPANDED);
+                        northSheetBehavior.setState(SheetBehavior.STATE_EXPANDED);
                         return true;
                     }
                     case SWIPE_LEFT:
                     {
-                        eastSheetBehavior.setState(EastSheetBehavior.STATE_EXPANDED);
+                        eastSheetBehavior.setState(SheetBehavior.STATE_EXPANDED);
                         return true;
                     }
                     case SWIPE_RIGHT:
                     {
-                        westSheetBehavior.setState(WestSheetBehavior.STATE_EXPANDED);
+                        westSheetBehavior.setState(SheetBehavior.STATE_EXPANDED);
                         return true;
                     }
                 }
