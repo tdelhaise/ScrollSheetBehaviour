@@ -16,11 +16,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
-import com.smobee.android.scrollsheetbehaviour.widget.EastSheetBehavior;
-import com.smobee.android.scrollsheetbehaviour.widget.NorthSheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.SheetBehavior;
 import com.smobee.android.scrollsheetbehaviour.widget.SouthSheetBehavior;
-import com.smobee.android.scrollsheetbehaviour.widget.WestSheetBehavior;
 import android.view.GestureDetector.OnGestureListener;
 
 import java.util.ArrayList;
