@@ -16,6 +16,7 @@ import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -40,8 +41,8 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     private static final String LOG_TAG = "SHEETBVIOR";
     
     private static final int SCROLL_UP =  -1;
-    private static final int SCROLL_LEFT =  -1;
     private static final int SCROLL_DOWN =  1;
+    private static final int SCROLL_LEFT =  -1;
     private static final int SCROLL_RIGHT =  1;
     
     private String getLogTag()
@@ -105,7 +106,93 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
      */
     public static final int STATE_HIDDEN = 5;
     
-    public String getStateString(@SheetBehavior.State int state)
+    private String getActionString(int action)
+    {
+        switch (action)
+        {
+            case MotionEvent.ACTION_BUTTON_PRESS:
+            {
+                return "ACTION_BUTTON_PRESS";
+            }
+            case MotionEvent.ACTION_BUTTON_RELEASE:
+            {
+                return "ACTION_BUTTON_RELEASE";
+            }
+            case MotionEvent.ACTION_CANCEL:
+            {
+                return "ACTION_CANCEL";
+            }
+            case MotionEvent.ACTION_DOWN:
+            {
+                return "ACTION_DOWN";
+            }
+            case MotionEvent.ACTION_HOVER_ENTER:
+            {
+                return "ACTION_HOVER_ENTER";
+            }
+            case MotionEvent.ACTION_HOVER_EXIT:
+            {
+                return "ACTION_HOVER_EXIT";
+            }
+            case MotionEvent.ACTION_HOVER_MOVE:
+            {
+                return "ACTION_HOVER_MOVE";
+            }
+            case MotionEvent.ACTION_MOVE:
+            {
+                return "ACTION_MOVE";
+            }
+            case MotionEvent.ACTION_OUTSIDE:
+            {
+                return "ACTION_OUTSIDE";
+            }
+            case MotionEvent.ACTION_POINTER_DOWN:
+            {
+                return "ACTION_POINTER_DOWN";
+            }
+            case MotionEvent.ACTION_POINTER_UP:
+            {
+                return "ACTION_POINTER_UP";
+            }
+            case MotionEvent.ACTION_SCROLL:
+            {
+                return "ACTION_SCROLL";
+            }
+            case MotionEvent.ACTION_UP:
+            {
+                return "ACTION_UP";
+            }
+            default:
+            {
+                return "UNKNOWN ACTION ID [" + action + "]";
+            }
+        }
+    }
+    
+    private String getDragHelperStateString(int state)
+    {
+        switch (state)
+        {
+            case ViewDragHelper.STATE_DRAGGING:
+            {
+                return "DRAGGING";
+            }
+            case ViewDragHelper.STATE_IDLE:
+            {
+                return "IDLE";
+            }
+            case ViewDragHelper.STATE_SETTLING:
+            {
+                return "SETTLING";
+            }
+            default:
+            {
+                return "UNKNOWN [" + state + "]";
+            }
+        }
+    }
+    
+    private String getStateString(@SheetBehavior.State int state)
     {
         switch (state)
         {
@@ -131,7 +218,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             }
             default:
             {
-                return "UNKNOWN";
+                return "UNKNOWN [" + state + "]";
             }
         }
     }
@@ -204,28 +291,28 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     
     private int mPeekSizeMin;
     
-    int mOffsetHidden;
+    private int mOffsetHidden;
     
-    int mOffsetExpanded;
+    private int mOffsetExpanded;
     
-    int mOffsetCollapsed;
+    private int mOffsetCollapsed;
     
-    boolean mHideable = false;
+    private boolean mHideable = false;
     
     private boolean mSkipCollapsed = false;
     
     @SheetBehavior.State
-    int mState = STATE_COLLAPSED;
+    private int mState = STATE_COLLAPSED;
     
     @SheetBehavior.Position
-    int mPosition = POSITION_SOUTH; // like a bottom sheet.
+    private int mPosition = POSITION_SOUTH; // like a bottom sheet.
     
     // wether the sheet move horizontaly or verticaly
-    boolean mSheetMoveHorizontaly = false;
+    private boolean mSheetMoveHorizontaly = false;
     // wheter the sheet when it's hidden, is place before top,left or after top,left
-    boolean mSheetHiddenBeforeOrigin = false;
+    private boolean mSheetHiddenBeforeOrigin = false;
     
-    ViewDragHelper mViewDragHelper;
+    private ViewDragHelper mViewDragHelper;
     
     private boolean mIgnoreEvents;
     
@@ -235,25 +322,25 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     
     private boolean mNestedScrolled;
     
-    int mParentHeight;
+    private int mParentHeight;
     
-    int mParentWidth;
+    private int mParentWidth;
     
-    WeakReference<V> mViewRef;
+    private WeakReference<V> mViewRef;
     
-    WeakReference<View> mNestedScrollingChildRef;
+    private WeakReference<View> mNestedScrollingChildRef;
     
     private SheetCallback mCallback;
     
     private VelocityTracker mVelocityTracker;
     
-    int mActivePointerId;
+    private int mActivePointerId;
     
     private int mInitialY;
     
     private int mInitialX;
     
-    boolean mTouchingScrollingChild;
+    private boolean mTouchingScrollingChild;
     
     private String mIdentifierName;
     
@@ -458,7 +545,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
      */
     public void setSheetCallback(SheetBehavior.SheetCallback callback)
     {
-        Log.d(getLogTag(),"setNorthSheetCallback ");
+        Log.d(getLogTag(),"setSheetCallback ");
         mCallback = callback;
     }
     
@@ -584,7 +671,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     
     void setStateInternal(@SheetBehavior.State int state)
     {
-        Log.d(getLogTag(),"setStateInternal new state[" + getStateString(state) + "] actual state [" + getStateString(mState) + "]");
+        Log.d(getLogTag(),"setStateInternal from state [" + getStateString(mState) + "] => [" + getStateString(state) + "]");
         if (mState == state)
         {
             return;
@@ -780,29 +867,9 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
         }
     }
     
-    private boolean shouldHideWithVelocityX(View releasedChild, float xVelocity)
-    {
-        boolean shouldHide = false;
-        Log.d(getLogTag(),"shouldHideWithVelocityX xVelocity [" + xVelocity + "]");
-    
-        Log.d(getLogTag(),"shouldHideWithVelocityX => [" + shouldHide + "]");
-        return shouldHide;
-    }
-    
-    private boolean shouldHideWithVelocityY(View releasedChild, float yVelocity)
-    {
-        boolean shouldHide = false;
-        Log.d(getLogTag(),"shouldHideWithVelocityY yVelocity [" + yVelocity + "]");
-    
-        Log.d(getLogTag(),"shouldHideWithVelocityY => [" + shouldHide + "]");
-        return shouldHide;
-    }
-    
     private final ViewDragHelper.Callback mDragCallback = new ViewDragHelper.Callback()
     {
         
-        private static final String LOG_TAG_CALLBACK = "SHEETCLBK";
-    
         /**
          * Called when the user's input indicates that they want to capture the given child view
          * with the pointer indicated by pointerId. The callback should return true if the user
@@ -822,24 +889,24 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
         @Override
         public boolean tryCaptureView(View child, int pointerId)
         {
-            Log.d(LOG_TAG_CALLBACK,"tryCaptureView child [" + child + "] pointerId [" + pointerId + "]");
+            Log.d(getLogTag(),"tryCaptureView child [" + child + "] pointerId [" + pointerId + "]");
             // si le sheet est déjà en train de dragger, on ne permet pas la capture.
             if (mState == STATE_DRAGGING)
             {
-                Log.d(LOG_TAG_CALLBACK,"tryCaptureView STATE_DRAGGING => FALSE");
+                Log.d(getLogTag(),"tryCaptureView STATE_DRAGGING => captured [FALSE]");
                 return false;
             }
             
             // si un scroll est en cour sur la scroll view enfant, on ne permet pas la capture.
             if (mTouchingScrollingChild)
             {
-                Log.d(LOG_TAG_CALLBACK,"tryCaptureView mTouchingScrollingChild [" + mTouchingScrollingChild + "] => FALSE");
+                Log.d(getLogTag(),"tryCaptureView state [" + getStateString(mState) + "] mTouchingScrollingChild [" + mTouchingScrollingChild + "] => captured [FALSE]");
                 return false;
             }
             
             if (mState == STATE_EXPANDED && mActivePointerId == pointerId)
             {
-                Log.d(LOG_TAG_CALLBACK,"tryCaptureView STATE_EXPANDED");
+                Log.d(getLogTag(),"tryCaptureView STATE_EXPANDED");
                 View scroll = mNestedScrollingChildRef.get();
                 if (scroll != null )
                 {
@@ -858,6 +925,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                         if (scroll.canScrollHorizontally(SCROLL_RIGHT) && mSheetHiddenBeforeOrigin == true)
                         {
                             // on laisse le contenue scroller vers la droite
+                            Log.d(getLogTag(),"tryCaptureView [STATE_EXPANDED]: SCROLL_RIGHT && mSheetHiddenBeforeOrigin [" + mSheetHiddenBeforeOrigin + "] => captured [FALSE]");
                             return false;
                         }
                         // si j'ai un sheet qui "arrive de droite" donc mSheetHiddenBeforeOrigin == false
@@ -865,6 +933,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                         // je n'inteviens pas ...
                         else if (scroll.canScrollHorizontally(SCROLL_LEFT) && mSheetHiddenBeforeOrigin == false)
                         {
+                            Log.d(getLogTag(),"tryCaptureView [STATE_EXPANDED]: SCROLL_LEFT && mSheetHiddenBeforeOrigin [" + mSheetHiddenBeforeOrigin + "] => captured [FALSE]");
                             // on laisse le contenue scroller vers la gauche
                             return false;
                         }
@@ -879,6 +948,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                         // et que la vue enfant peut scroller vers le haut (SCROLL_UP) je n'interviens pas
                         if (scroll.canScrollVertically(SCROLL_UP) && mSheetHiddenBeforeOrigin == false)
                         {
+                            Log.d(getLogTag(),"tryCaptureView [STATE_EXPANDED]: SCROLL_UP && mSheetHiddenBeforeOrigin [" + mSheetHiddenBeforeOrigin + "] => captured [FALSE]");
                             // on laisse le contenue scroller vers le haut
                             return false;
                         }
@@ -886,28 +956,41 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                         // je n'interviens pas ...
                         else if (scroll.canScrollVertically(SCROLL_DOWN) && mSheetHiddenBeforeOrigin == true)
                         {
+                            Log.d(getLogTag(),"tryCaptureView [STATE_EXPANDED]: SCROLL_DOWN && mSheetHiddenBeforeOrigin [" + mSheetHiddenBeforeOrigin + "] => captured [FALSE]");
                             // on laisse le contenue scroller vers le bas
                             return false;
                         }
                     }
                 }
+                else
+                {
+                    Log.w(getLogTag(),"tryCaptureView STATE_EXPANDED scroll view is null.");
+                }
             }
             
             // finalement si la weak reference dont on dispose est égale à la vue passée en paramètre, alors on capture ...
-            return mViewRef != null && mViewRef.get() == child;
+            boolean captured =  mViewRef != null && mViewRef.get() == child;
+            Log.d(getLogTag(),"tryCaptureView state [" + getStateString(mState) + "] => captured [" + captured + "]");
+            return captured;
+        }
+    
+        @Override
+        public void onViewCaptured(View capturedChild, int activePointerId)
+        {
+            Log.d(getLogTag(),"onViewCaptured child [" + capturedChild + "] activePointerId [" + activePointerId + "]");
         }
         
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy)
         {
-            Log.d(LOG_TAG_CALLBACK,"onViewPositionChanged left [" +left + "] top [" + top + "] dx [" + dx + "] dy [" + dy + "]");
+            Log.d(getLogTag(),"onViewPositionChanged left [" +left + "] top [" + top + "] dx [" + dx + "] dy [" + dy + "]");
             dispatchOnSlide(left, top);
         }
         
         @Override
         public void onViewDragStateChanged(int state)
         {
-            Log.d(LOG_TAG_CALLBACK,"onViewDragStateChanged ");
+            Log.d(getLogTag(),"onViewDragStateChanged state [" + getDragHelperStateString(state) + "]");
             // la seule chose qui nous intéresse ici , c'est de noter l'état STATE_DRAGGING
             if (state == ViewDragHelper.STATE_DRAGGING)
             {
@@ -915,9 +998,9 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             }
         }
         
-        private void onViewReleasedWithHorizontaleGesture(View releasedChild, float xVelocity)
+        private void onViewReleasedWithHorizontaleGesture(View releasedChild, float xVelocity, float yVelocity)
         {
-            Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture child [" + releasedChild +"] xVelocity [" + xVelocity +"]");
+            Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture child [" + releasedChild +"] xVelocity [" + xVelocity +"] yVelocity [" + yVelocity +"]");
     
             // le but de la methode est comme le documente le ViewDragHelper d'appeler une des 2 méthodes suivantes du ViewDragHelper:
             // - settleCaptureViewAt()
@@ -932,7 +1015,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             // - EXPANDED
             // - etc
             //
-            // Le topX parcontre dans ce cas ne bouge pas : c'est le X actuel de la vue capturée.
+            // Le topY parcontre dans ce cas ne bouge pas : c'est le Y actuel de la vue capturée : releasedChild.getTop().
     
             int topX ;
             int topY = releasedChild.getTop();
@@ -940,7 +1023,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             if (xVelocity > 0)
             {
                 // C'est un déplacement vers la droite
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_EXPANDED");
+                Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_EXPANDED");
                 if(mSheetHiddenBeforeOrigin)
                 {
                     // si c'est un sheet qui vient de gauche
@@ -956,9 +1039,9 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                     targetState = STATE_COLLAPSED;
                 }
             }
-            else if (mHideable && shouldHideWithVelocityX(releasedChild, xVelocity))
+            else if (mHideable && shouldHide(releasedChild, xVelocity,yVelocity))
             {
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_HIDDEN");
+                Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_HIDDEN");
                 topX = mOffsetHidden;
                 targetState = STATE_HIDDEN;
             }
@@ -974,13 +1057,13 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                 {
                     topX = mOffsetExpanded;
                     targetState = STATE_EXPANDED;
-                    Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_EXPANDED");
+                    Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_EXPANDED");
                 }
                 else
                 {
                     topX = mOffsetCollapsed;
                     targetState = STATE_COLLAPSED;
-                    Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_COLLAPSED");
+                    Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_COLLAPSED");
                 }
             }
             else
@@ -992,7 +1075,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                     // si c'est un sheet qui vient de gauche
                     // cela signifie que l'utilisateur veut faire "rentrer" le sheet => STATE_COLLAPSED
             
-                    Log.d(LOG_TAG_CALLBACK, "onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity + "] => STATE_EXPANDED");
+                    Log.d(getLogTag(), "onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity + "] => STATE_EXPANDED");
                     topX = mOffsetCollapsed;
                     targetState = STATE_COLLAPSED;
                 }
@@ -1000,7 +1083,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                 {
                     // si c'est un sheet qui vient de droite
                     // cela signifie que l'utilisateur veut faire "sortir" le sheet => STATE_EXPANDED
-                    Log.d(LOG_TAG_CALLBACK, "onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity + "] => STATE_COLLAPSED");
+                    Log.d(getLogTag(), "onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity + "] => STATE_COLLAPSED");
                     topX = mOffsetExpanded;
                     targetState = STATE_EXPANDED;
                 }
@@ -1008,20 +1091,20 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     
             if (mViewDragHelper.settleCapturedViewAt(topX, topY))
             {
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_SETTLING");
+                Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => STATE_SETTLING");
                 setStateInternal(STATE_SETTLING);
                 ViewCompat.postOnAnimation(releasedChild, new SheetBehavior.SettleRunnable(releasedChild, targetState));
             }
             else
             {
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => " + getStateString(targetState));
+                Log.d(getLogTag(),"onViewReleasedWithHorizontaleGesture xVelocity [" + xVelocity +"] => " + getStateString(targetState));
                 setStateInternal(targetState);
             }
         }
     
-        private void onViewReleasedWithVerticaleGesture(View releasedChild, float yVelocity)
+        private void onViewReleasedWithVerticaleGesture(View releasedChild, float xVelocity, float yVelocity)
         {
-            Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture child [" + releasedChild +"] yVelocity [" + yVelocity +"]");
+            Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture child [" + releasedChild +"] xVelocity [" + xVelocity +"] yVelocity [" + yVelocity +"]");
             
             // le but de la methode est comme le documente le ViewDragHelper d'appeler une des 2 méthodes suivantes du ViewDragHelper:
             // - settleCaptureViewAt()
@@ -1036,7 +1119,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             // - EXPANDED
             // - etc
             //
-            // Le topX parcontre dans ce cas ne bouge pas : c'est le X actuel de la vue capturée.
+            // Le topX parcontre dans ce cas ne bouge pas : c'est le X actuel de la vue capturée: releasedChild.getLeft().
     
             int topX = releasedChild.getLeft();
             int topY;
@@ -1044,7 +1127,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             if (yVelocity > 0)
             {
                 // C'est un déplacement vers le haut
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_EXPANDED");
+                Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_EXPANDED");
                 if(mSheetHiddenBeforeOrigin)
                 {
                     // si c'est un sheet qui vient du haut
@@ -1060,9 +1143,9 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                     targetState = STATE_EXPANDED;
                 }
             }
-            else if (mHideable && shouldHideWithVelocityY(releasedChild, yVelocity))
+            else if (mHideable && shouldHide(releasedChild, xVelocity, yVelocity))
             {
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_HIDDEN");
+                Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_HIDDEN");
                 topY = mOffsetHidden;
                 targetState = STATE_HIDDEN;
             }
@@ -1078,13 +1161,13 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                 {
                     topY = mOffsetExpanded;
                     targetState = STATE_EXPANDED;
-                    Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_EXPANDED");
+                    Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_EXPANDED");
                 }
                 else
                 {
                     topY = mOffsetCollapsed;
                     targetState = STATE_COLLAPSED;
-                    Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_COLLAPSED");
+                    Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_COLLAPSED");
                 }
             }
             else
@@ -1096,7 +1179,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                     // si c'est un sheet qui vient du haut
                     // cela signifie que l'utilisateur veut faire apparaitre le sheet => STATE_EXPANDED
     
-                    Log.d(LOG_TAG_CALLBACK, "onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity + "] => STATE_EXPANDED");
+                    Log.d(getLogTag(), "onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity + "] => STATE_EXPANDED");
                     topY = mOffsetExpanded;
                     targetState = STATE_EXPANDED;
                 }
@@ -1104,7 +1187,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                 {
                     // si c'est un sheet qui vient du bas
                     // cela signifie que l'utilisateur veut faire "rentrer" le sheet => STATE_COLLAPSED
-                    Log.d(LOG_TAG_CALLBACK, "onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity + "] => STATE_COLLAPSED");
+                    Log.d(getLogTag(), "onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity + "] => STATE_COLLAPSED");
                     topY = mOffsetCollapsed;
                     targetState = STATE_COLLAPSED;
                 }
@@ -1112,13 +1195,13 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     
             if (mViewDragHelper.settleCapturedViewAt(topX, topY))
             {
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_SETTLING");
+                Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => STATE_SETTLING");
                 setStateInternal(STATE_SETTLING);
                 ViewCompat.postOnAnimation(releasedChild, new SheetBehavior.SettleRunnable(releasedChild, targetState));
             }
             else
             {
-                Log.d(LOG_TAG_CALLBACK,"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => " + getStateString(targetState));
+                Log.d(getLogTag(),"onViewReleasedWithVerticaleGesture yVelocity [" + yVelocity +"] => " + getStateString(targetState));
                 setStateInternal(targetState);
             }
         }
@@ -1127,14 +1210,14 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
         @Override
         public void onViewReleased(View releasedChild, float xVelocity, float yVelocity)
         {
-            Log.d(LOG_TAG_CALLBACK,"onViewReleased xvel [" + xVelocity +"] yvel [" + yVelocity +"]");
+            Log.d(getLogTag(),"onViewReleased xvel [" + xVelocity +"] yvel [" + yVelocity +"]");
     
             // on vient de relacher une vue ...
             if(mSheetMoveHorizontaly)
             {
                 // et notre sheet bouge horizontalement
                 // ce qui nous intéresse donc c'est la velocité horizontale (xVelocity)
-                onViewReleasedWithHorizontaleGesture(releasedChild, xVelocity);
+                onViewReleasedWithHorizontaleGesture(releasedChild, xVelocity, yVelocity);
                 
             }
             else
@@ -1142,25 +1225,57 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     
                 // et notre sheet bouge verticalement
                 // ce qui nous intéresse donc c'est la velocité verticale (yVelocity)
-                onViewReleasedWithVerticaleGesture(releasedChild, yVelocity);
+                onViewReleasedWithVerticaleGesture(releasedChild, xVelocity, yVelocity);
             }
         }
         
         @Override
         public int clampViewPositionVertical(View child, int top, int dy)
         {
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionVertical top [" + top + "] dy [" + dy + "] mOffsetExpanded [" + mOffsetExpanded + "] hideable [" + mHideable + "] mOffsetHidden [" + mOffsetHidden + "] mOffsetCollapsed [" + mOffsetCollapsed + "]");
-            int clampValue = MathUtils.clamp(top + dy, mHideable ? mOffsetHidden : mOffsetCollapsed, mOffsetExpanded);
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionVertical return clamp value [" + clampValue + "]");
+            Log.d(getLogTag(), "clampViewPositionVertical top [" + top + "] dy [" + dy + "] mOffsetExpanded [" + mOffsetExpanded + "] hideable [" + mHideable + "] mOffsetHidden [" + mOffsetHidden + "] mOffsetCollapsed [" + mOffsetCollapsed + "]");
+            int clampValue = 0;
+            if(!mSheetMoveHorizontaly)
+            {
+                if(!mSheetHiddenBeforeOrigin)
+                {
+                    clampValue = MathUtils.clamp(top + dy, mHideable ? mOffsetHidden : mOffsetCollapsed, mOffsetExpanded);
+                }
+                else
+                {
+                    clampValue = MathUtils.clamp(top + dy, mOffsetExpanded, mHideable ? mOffsetHidden : mOffsetCollapsed );
+                }
+            }
+            else
+            {
+                clampValue = child.getTop();
+            }
+    
+            Log.d(getLogTag(), "clampViewPositionVertical return clamp value [" + clampValue + "]");
             return clampValue;
         }
         
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx)
         {
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionHorizontal left [" + left + "] dx [" + dx + "] mOffsetExpanded [" + mOffsetExpanded + "] hideable [" + mHideable + "] mOffsetHidden [" + mOffsetHidden + "] mOffsetCollapsed [" + mOffsetCollapsed + "]");
-            int clampValue = child.getLeft();
-            Log.d(LOG_TAG_CALLBACK,"clampViewPositionVertical return clamp value [" + clampValue + "]");
+            Log.d(getLogTag(), "clampViewPositionHorizontal left [" + left + "] dx [" + dx + "] mOffsetExpanded [" + mOffsetExpanded + "] hideable [" + mHideable + "] mOffsetHidden [" + mOffsetHidden + "] mOffsetCollapsed [" + mOffsetCollapsed + "]");
+            int clampValue = 0;
+            if(!mSheetMoveHorizontaly)
+            {
+                clampValue = child.getLeft();
+            }
+            else
+            {
+                if(!mSheetHiddenBeforeOrigin)
+                {
+                    clampValue = MathUtils.clamp(left + dx, mOffsetExpanded, mHideable ? mOffsetHidden : mOffsetCollapsed);
+                }
+                else
+                {
+                    clampValue = MathUtils.clamp(left + dx, mHideable ? mOffsetHidden : mOffsetCollapsed, mOffsetExpanded );
+                }
+            }
+    
+            Log.d(getLogTag(), "clampViewPositionHorizontal return clamp value [" + clampValue + "]");
             return clampValue;
         }
         
@@ -1185,7 +1300,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                 }
             }
     
-            Log.d(LOG_TAG_CALLBACK, "getViewVerticalDragRange child [" + child + "] dragRange [" + dragRange + "]");
+            Log.d(getLogTag(), "getViewVerticalDragRange child [" + child + "] dragRange [" + dragRange + "]");
             return dragRange;
         }
     
@@ -1210,7 +1325,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
                 }
             }
     
-            Log.d(LOG_TAG_CALLBACK, "getViewHorizontalDragRange child [" + child + "] dragRange [" + dragRange + "]");
+            Log.d(getLogTag(), "getViewHorizontalDragRange child [" + child + "] dragRange [" + dragRange + "]");
             return dragRange;
         }
     };
@@ -1235,7 +1350,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
         return yVelocity;
     }
     
-    boolean shouldHide(View child, float xvel, float yvel)
+    private boolean shouldHide(View child, float xvel, float yvel)
     {
         Log.d(getLogTag(),"shouldHide xvel [" + xvel + "] yvel [" + yvel + "] mSkipCollapsed [" + mSkipCollapsed + "]");
         if (mSkipCollapsed)
@@ -1243,22 +1358,83 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
             Log.d(getLogTag(),"shouldHide SKIP COLLAPSED => TRUE ");
             return true;
         }
-        // si le point haut de la vue (top) est encore supérieur à mOffsetCollapsed et que
-        // la vue doit passer par l'état collapsed alors on ne cache pas la vue.
-        Log.d(getLogTag(),"shouldHide child top [" + child.getTop() + "] more than mOffsetCollapsed [" + mOffsetCollapsed + "] ?");
-        if (child.getTop() > mOffsetCollapsed)
+        
+        if(!mSheetMoveHorizontaly)
         {
-            Log.d(getLogTag(),"shouldHide child top [" + child.getTop() + "] more than mOffsetCollapsed [" + mOffsetCollapsed + "] => FALSE ");
-            // It should not hide, but collapse.
-            return false;
+            // si le point haut de la vue (top) est encore supérieur à mOffsetCollapsed et que
+            // la vue doit passer par l'état collapsed alors on ne cache pas la vue.
+            Log.d(getLogTag(), "shouldHide child top [" + child.getTop() + "] more than mOffsetCollapsed [" + mOffsetCollapsed + "] ?");
+            if (!mSheetHiddenBeforeOrigin)
+            {
+                if(child.getTop() > mOffsetCollapsed)
+                {
+                    Log.d(getLogTag(), "shouldHide child top [" + child.getTop() + "] more than mOffsetCollapsed [" + mOffsetCollapsed + "] => FALSE ");
+                    // It should not hide, but collapse.
+                    return false;
+                }
+    
+                final float newTop = child.getTop() + yvel * HIDE_FRICTION;
+                Log.d(getLogTag(),"shouldHide new top [" + newTop + "]");
+    
+                float threshold = Math.abs(newTop - mOffsetCollapsed) / (float) mPeekSize;
+                Log.d(getLogTag(),"shouldHide threshold [" + threshold + "] => result [" + ((boolean) (threshold > HIDE_THRESHOLD)) + "]");
+                return threshold > HIDE_THRESHOLD;
+            }
+            else
+            {
+                if(child.getTop() < mOffsetCollapsed)
+                {
+                    Log.d(getLogTag(), "shouldHide child top [" + child.getTop() + "] less than mOffsetCollapsed [" + mOffsetCollapsed + "] => FALSE ");
+                    // It should not hide, but collapse.
+                    return false;
+                }
+    
+                final float newTop = child.getTop() + yvel * HIDE_FRICTION;
+                Log.d(getLogTag(),"shouldHide new top [" + newTop + "]");
+    
+                float threshold = Math.abs(newTop - mOffsetCollapsed) / (float) mPeekSize;
+                Log.d(getLogTag(),"shouldHide threshold [" + threshold + "] => result [" + ((boolean) (threshold > HIDE_THRESHOLD)) + "]");
+                return threshold > HIDE_THRESHOLD;
+            }
         }
+        else
+        {
+            // si le point haut de la vue (top) est encore supérieur à mOffsetCollapsed et que
+            // la vue doit passer par l'état collapsed alors on ne cache pas la vue.
+            Log.d(getLogTag(), "shouldHide child left [" + child.getLeft() + "] more than mOffsetCollapsed [" + mOffsetCollapsed + "] ?");
+            if (!mSheetHiddenBeforeOrigin)
+            {
+                if(child.getLeft() > mOffsetCollapsed)
+                {
+                    Log.d(getLogTag(), "shouldHide child left [" + child.getLeft() + "] more than mOffsetCollapsed [" + mOffsetCollapsed + "] => FALSE ");
+                    // It should not hide, but collapse.
+                    return false;
+                }
         
-        final float newTop = child.getTop() + yvel * HIDE_FRICTION;
-        Log.d(getLogTag(),"shouldHide new top [" + newTop + "]");
+                final float newLeft = child.getLeft() + xvel * HIDE_FRICTION;
+                Log.d(getLogTag(),"shouldHide new left [" + newLeft + "]");
         
-        float threshold = Math.abs(newTop - mOffsetCollapsed) / (float) mPeekSize;
-        Log.d(getLogTag(),"shouldHide threshold [" + threshold + "] => result [" + ((boolean) (threshold > HIDE_THRESHOLD)) + "]");
-        return threshold > HIDE_THRESHOLD;
+                float threshold = Math.abs(newLeft - mOffsetCollapsed) / (float) mPeekSize;
+                Log.d(getLogTag(),"shouldHide threshold [" + threshold + "] => result [" + ((boolean) (threshold > HIDE_THRESHOLD)) + "]");
+                return threshold > HIDE_THRESHOLD;
+            }
+            else
+            {
+                if(child.getLeft() < mOffsetCollapsed)
+                {
+                    Log.d(getLogTag(), "shouldHide child left [" + child.getLeft() + "] less than mOffsetCollapsed [" + mOffsetCollapsed + "] => FALSE ");
+                    // It should not hide, but collapse.
+                    return false;
+                }
+    
+                final float newLeft = child.getLeft() + xvel * HIDE_FRICTION;
+                Log.d(getLogTag(),"shouldHide new left [" + newLeft + "]");
+    
+                float threshold = Math.abs(newLeft - mOffsetCollapsed) / (float) mPeekSize;
+                Log.d(getLogTag(),"shouldHide threshold [" + threshold + "] => result [" + ((boolean) (threshold > HIDE_THRESHOLD)) + "]");
+                return threshold > HIDE_THRESHOLD;
+            }
+        }
     }
     
     
@@ -1271,6 +1447,7 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
     @SuppressWarnings("unchecked")
     public static <V extends View> SheetBehavior<V> from(V view)
     {
+        Log.d("SheetBehavior","from viewId [" + view.getId() + "]");
         ViewGroup.LayoutParams params = view.getLayoutParams();
         if (!(params instanceof CoordinatorLayout.LayoutParams))
         {
@@ -1615,5 +1792,597 @@ public class SheetBehavior <V extends View> extends CoordinatorLayout.Behavior<V
         Log.d(getLogTag(),"getComputePeekSize peekSize ...[" + peekSize + "]");
         
         return peekSize;
+    }
+    
+    @Override
+    public boolean onInterceptTouchEvent(CoordinatorLayout parent, V child, MotionEvent event)
+    {
+        boolean intercepted = false;
+    
+        View scroll = mNestedScrollingChildRef != null ? mNestedScrollingChildRef.get() : null;
+    
+        Log.d(getLogTag(),"onInterceptTouchEvent motionEvent [" + event + "] child [" + child + "]");
+    
+        if (!child.isShown())
+        {
+            mIgnoreEvents = true;
+            intercepted = false;
+            Log.d(getLogTag(),"onInterceptTouchEvent child not shown. => [" + intercepted + "]");
+            return intercepted;
+        }
+    
+        int action = event.getActionMasked();
+        Log.d(getLogTag(),"onInterceptTouchEvent action [" + getActionString(action) + "]");
+        // Record the velocity
+        if (action == MotionEvent.ACTION_DOWN)
+        {
+            Log.d(getLogTag(),"onInterceptTouchEvent ACTION_DOWN so RESET");
+            reset();
+        }
+        
+        if (mVelocityTracker == null)
+        {
+            Log.d(getLogTag(),"onInterceptTouchEvent retreived velocity tracker ... ");
+            mVelocityTracker = VelocityTracker.obtain();
+        }
+    
+        Log.d(getLogTag(),"onInterceptTouchEvent start tracking motionEvent [" + event + "]");
+        mVelocityTracker.addMovement(event);
+        switch (action)
+        {
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                mTouchingScrollingChild = false;
+                mActivePointerId = MotionEvent.INVALID_POINTER_ID;
+                // Reset the ignore flag
+                if (mIgnoreEvents)
+                {
+                    mIgnoreEvents = false;
+                    Log.d(getLogTag(),"onInterceptTouchEvent ACTION_UP || ACTION_CANCEL =>  false");
+                    return false;
+                }
+                break;
+            case MotionEvent.ACTION_DOWN:
+                mInitialX = (int) event.getX();
+                mInitialY = (int) event.getY();
+                Log.d(getLogTag(),"onInterceptTouchEvent ACTION_DOWN mInitialX [" + mInitialX + "] mInitialY [" + mInitialY + "] scroll [" + scroll + "]");
+                if (scroll != null && parent.isPointInChildBounds(scroll, mInitialX, mInitialY))
+                {
+                    mActivePointerId = event.getPointerId(event.getActionIndex());
+                    mTouchingScrollingChild = true;
+                }
+                Log.d(getLogTag(),"onInterceptTouchEvent ACTION_DOWN => scroll [" + scroll + "] mTouchingScrollingChild [" + mTouchingScrollingChild + "]");
+                mIgnoreEvents = mActivePointerId == MotionEvent.INVALID_POINTER_ID && !parent.isPointInChildBounds(child, mInitialX, mInitialY);
+                Log.d(getLogTag(),"onInterceptTouchEvent ACTION_DOWN => mIgnoreEvents [" + mIgnoreEvents + "]");
+                break;
+        }
+    
+        boolean shouldInterceptTouchEvent = mViewDragHelper.shouldInterceptTouchEvent(event);
+        Log.d(getLogTag(),"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] dragHelperIntercept [" + shouldInterceptTouchEvent + "] ");
+        if (!mIgnoreEvents && shouldInterceptTouchEvent)
+        {
+            Log.d(getLogTag(),"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "] dragHelperIntercept [" + shouldInterceptTouchEvent + "] => TRUE ");
+            return true;
+        }
+        // We have to handle cases that the ViewDragHelper does not capture the sheet because
+        // it is not the top most view of its parent. This is not necessary when the touch event is
+        // happening over the scrolling content as nested scrolling logic handles that case.
+        if(!mSheetMoveHorizontaly)
+        {
+            intercepted = action == MotionEvent.ACTION_MOVE && scroll != null && !mIgnoreEvents && mState != STATE_DRAGGING && !parent.isPointInChildBounds(scroll, (int) event.getX(), (int) event.getY()) && Math.abs(mInitialY - event.getY()) > mViewDragHelper.getTouchSlop();
+        }
+        else
+        {
+            intercepted = action == MotionEvent.ACTION_MOVE && scroll != null && !mIgnoreEvents && mState != STATE_DRAGGING && !parent.isPointInChildBounds(scroll, (int) event.getX(), (int) event.getY()) && Math.abs(mInitialX - event.getX()) > mViewDragHelper.getTouchSlop();
+        }
+        Log.d(getLogTag(),"onInterceptTouchEvent mIgnoreEvents [" + mIgnoreEvents + "]");
+        Log.d(getLogTag(),"onInterceptTouchEvent => [" + intercepted + "]");
+        return intercepted;
+    }
+    
+    @Override
+    public boolean onTouchEvent(CoordinatorLayout parent, V child, MotionEvent event)
+    {
+        Log.d(getLogTag(),"onTouchEvent motionEvent [" + event + "] child [" + child + "]");
+    
+        if (!child.isShown())
+        {
+            Log.d(getLogTag(),"onTouchEvent child not shown => [false]");
+            return false;
+        }
+        int action = event.getActionMasked();
+        if (mState == STATE_DRAGGING && action == MotionEvent.ACTION_DOWN)
+        {
+            Log.d(getLogTag(),"onTouchEvent DRAGGING && ACTION_DOWN => [true]");
+            return true;
+        }
+    
+        if (mViewDragHelper != null)
+        {
+            mViewDragHelper.processTouchEvent(event);
+        }
+        // Record the velocity
+        if (action == MotionEvent.ACTION_DOWN)
+        {
+            reset();
+        }
+    
+        if (mVelocityTracker == null)
+        {
+            mVelocityTracker = VelocityTracker.obtain();
+        }
+        mVelocityTracker.addMovement(event);
+        // The ViewDragHelper tries to capture only the top-most View. We have to explicitly tell it
+        // to capture the bottom sheet in case it is not captured and the touch slop is passed.
+        if (action == MotionEvent.ACTION_MOVE && !mIgnoreEvents)
+        {
+            if(!mSheetMoveHorizontaly)
+            {
+                if(!mSheetHiddenBeforeOrigin)
+                {
+                    if (Math.abs(mInitialY - event.getY()) > mViewDragHelper.getTouchSlop())
+                    {
+                        Log.d(getLogTag(),"onTouchEvent capture child [" + child + "]");
+                        mViewDragHelper.captureChildView(child, event.getPointerId(event.getActionIndex()));
+                    }
+                    else
+                    {
+                        float thresold = Math.abs(mInitialY - event.getY());
+                        Log.d(getLogTag(),"onTouchEvent DID NOT capture child : touchSlop [" + mViewDragHelper.getTouchSlop() + "] thresold [" + thresold + "]" );
+                    }
+                }
+                else
+                {
+                    if (Math.abs(event.getY() - mInitialY) > mViewDragHelper.getTouchSlop())
+                    {
+                        Log.d(getLogTag(),"onTouchEvent capture child [" + child + "]");
+                        mViewDragHelper.captureChildView(child, event.getPointerId(event.getActionIndex()));
+                    }
+                    else
+                    {
+                        float thresold = Math.abs(event.getY() - mInitialY);
+                        Log.d(getLogTag(),"onTouchEvent DID NOT capture child : touchSlop [" + mViewDragHelper.getTouchSlop() + "] thresold [" + thresold + "]" );
+                    }
+                }
+            }
+            else
+            {
+                if(!mSheetHiddenBeforeOrigin)
+                {
+                    if (Math.abs(mInitialX - event.getX()) > mViewDragHelper.getTouchSlop())
+                    {
+                        Log.d(getLogTag(),"onTouchEvent capture child [" + child + "]");
+                        mViewDragHelper.captureChildView(child, event.getPointerId(event.getActionIndex()));
+                    }
+                    else
+                    {
+                        float thresold = Math.abs(mInitialX - event.getX());
+                        Log.d(getLogTag(),"onTouchEvent DID NOT capture child : touchSlop [" + mViewDragHelper.getTouchSlop() + "] thresold [" + thresold + "]" );
+                    }
+                }
+                else
+                {
+                    if (Math.abs( event.getX() - mInitialX) > mViewDragHelper.getTouchSlop())
+                    {
+                        Log.d(getLogTag(),"onTouchEvent capture child [" + child + "]");
+                        mViewDragHelper.captureChildView(child, event.getPointerId(event.getActionIndex()));
+                    }
+                    else
+                    {
+                        float thresold = Math.abs( event.getX() - mInitialX);
+                        Log.d(getLogTag(),"onTouchEvent DID NOT capture child : touchSlop [" + mViewDragHelper.getTouchSlop() + "] thresold [" + thresold + "]" );
+                    }
+                }
+            }
+        }
+        Log.d(getLogTag(),"onTouchEvent => [" + !mIgnoreEvents + "]");
+        return !mIgnoreEvents;
+    }
+    
+    @Override
+    public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, V child, View directTargetChild, View target, int nestedScrollAxes)
+    {
+        // on autorise les nestedScroll dans toutes les directions... quelques soit le sheet ...
+        boolean nestedScroll = false;
+        Log.d(getLogTag(),"onStartNestedScroll nestedScrollAxes horizontal [" + ((nestedScrollAxes & ViewCompat.SCROLL_AXIS_HORIZONTAL) != 0) + "] vertical [" + ((nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0) + "]");
+        if(!mSheetMoveHorizontaly)
+        {
+            mLastNestedScrollDy = 0;
+            mNestedScrolled = false;
+            nestedScroll = (nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0 || (nestedScrollAxes & ViewCompat.SCROLL_AXIS_HORIZONTAL) != 0;
+        }
+        else
+        {
+            mLastNestedScrollDx = 0;
+            mNestedScrolled = false;
+            nestedScroll = (nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0 || (nestedScrollAxes & ViewCompat.SCROLL_AXIS_HORIZONTAL) != 0;
+        }
+    
+        Log.d(getLogTag(),"onStartNestedScroll =>  nestedScroll [" + nestedScroll + "]");
+        return nestedScroll;
+    }
+    
+    @Override
+    public void onNestedPreScroll(CoordinatorLayout coordinatorLayout, V child, View target, int dx, int dy, int[] consumed)
+    {
+        Log.d(getLogTag(),"*** DEPRECATED *** onNestedPreScroll dx [" + dx + "] dy [" + dy + "]" );
+        View scrollingChild = mNestedScrollingChildRef.get();
+        if (target != scrollingChild)
+        {
+            return;
+        }
+        int currentTop = child.getTop();
+        int currentLeft = child.getLeft();
+        int newTop = currentTop - dy;
+        int newLeft = currentLeft - dx;
+        
+        if(!mSheetMoveHorizontaly)
+        {
+            if(!mSheetHiddenBeforeOrigin)
+            {
+                if (dy > 0)
+                {
+                    // Upward
+                    // Si on tente de dépasser mOffsetExpanded ...
+                    // on déplace le sheet pour qu'il arrive à mOffsetExpanded...
+                    // on clamp le sheet à cette valeur.
+                    if (newTop < mOffsetExpanded)
+                    {
+                        consumed[1] = currentTop - mOffsetExpanded;
+                        ViewCompat.offsetTopAndBottom(child, -consumed[1]);
+                        setStateInternal(STATE_EXPANDED);
+                    }
+                    else
+                    {
+                        consumed[1] = dy;
+                        ViewCompat.offsetTopAndBottom(child, -dy);
+                        setStateInternal(STATE_DRAGGING);
+                    }
+                }
+                else if (dy < 0)
+                {
+                    // Downward
+                    if (!target.canScrollVertically(-1))
+                    {
+                        if (newTop <= mOffsetCollapsed || mHideable)
+                        {
+                            consumed[1] = dy;
+                            ViewCompat.offsetTopAndBottom(child, -dy);
+                            setStateInternal(STATE_DRAGGING);
+                        }
+                        else
+                        {
+                            consumed[1] = currentTop - mOffsetCollapsed;
+                            ViewCompat.offsetTopAndBottom(child, -consumed[1]);
+                            setStateInternal(STATE_COLLAPSED);
+                        }
+                    }
+                    else
+                    {
+                        Log.e(getLogTag(), "*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset IGNORED");
+                    }
+                }
+            }
+            else
+            {
+                if (dy < 0)
+                {
+                    // Downward
+                    
+                    if (newTop > mOffsetExpanded)
+                    {
+                        consumed[1] = currentTop - mOffsetExpanded;
+                        ViewCompat.offsetTopAndBottom(child, -consumed[1]);
+                        setStateInternal(STATE_EXPANDED);
+                    }
+                    else
+                    {
+                        consumed[1] = dy;
+                        ViewCompat.offsetTopAndBottom(child, -dy);
+                        setStateInternal(STATE_DRAGGING);
+                    }
+                }
+                else if (dy > 0)
+                {
+                    // Upward
+                    if (!target.canScrollVertically(1))
+                    {
+            
+                        if (newTop <= mOffsetCollapsed || mHideable)
+                        {
+                            consumed[1] = dy;
+                            ViewCompat.offsetTopAndBottom(child, -dy);
+                            setStateInternal(STATE_DRAGGING);
+                        }
+                        else
+                        {
+                            consumed[1] = currentTop - mOffsetCollapsed;
+                            ViewCompat.offsetTopAndBottom(child, -consumed[1]);
+                            setStateInternal(STATE_COLLAPSED);
+                        }
+                    }
+                    else
+                    {
+                        Log.e(getLogTag(), "*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset IGNORED");
+                    }
+                }
+            }
+            mLastNestedScrollDy = dy;
+        }
+        else
+        {
+            if(!mSheetHiddenBeforeOrigin)
+            {
+                if (dx > 0)
+                {
+                    //
+                    // Si on tente de dépasser mOffsetExpanded ...
+                    // on déplace le sheet pour qu'il arrive à mOffsetExpanded...
+                    // on clamp le sheet à cette valeur.
+                    if (newLeft < mOffsetExpanded)
+                    {
+                        consumed[0] = currentLeft - mOffsetExpanded;
+                        ViewCompat.offsetLeftAndRight(child, -consumed[0]);
+                        setStateInternal(STATE_EXPANDED);
+                    }
+                    else
+                    {
+                        consumed[0] = dx;
+                        ViewCompat.offsetLeftAndRight(child, -dx);
+                        setStateInternal(STATE_DRAGGING);
+                    }
+                }
+                else if (dx < 0)
+                {
+                    // Downward
+                    if (!target.canScrollHorizontally(-1))
+                    {
+                        if (newLeft <= mOffsetCollapsed || mHideable)
+                        {
+                            consumed[0] = dx;
+                            ViewCompat.offsetLeftAndRight(child, -dx);
+                            setStateInternal(STATE_DRAGGING);
+                        }
+                        else
+                        {
+                            consumed[0] = currentLeft - mOffsetCollapsed;
+                            ViewCompat.offsetLeftAndRight(child, -consumed[0]);
+                            setStateInternal(STATE_COLLAPSED);
+                        }
+                    }
+                    else
+                    {
+                        Log.e(getLogTag(), "*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset IGNORED");
+                    }
+                }
+            }
+            else
+            {
+                if (dx < 0)
+                {
+                    // Downward
+            
+                    if (newLeft > mOffsetExpanded)
+                    {
+                        consumed[0] = currentLeft - mOffsetExpanded;
+                        ViewCompat.offsetLeftAndRight(child, -consumed[0]);
+                        setStateInternal(STATE_EXPANDED);
+                    }
+                    else
+                    {
+                        consumed[0] = dx;
+                        ViewCompat.offsetLeftAndRight(child, -dx);
+                        setStateInternal(STATE_DRAGGING);
+                    }
+                }
+                else if (dx > 0)
+                {
+                    // Upward
+                    if (!target.canScrollHorizontally(1))
+                    {
+                
+                        if (newLeft <= mOffsetCollapsed || mHideable)
+                        {
+                            consumed[0] = dx;
+                            ViewCompat.offsetLeftAndRight(child, -dx);
+                            setStateInternal(STATE_DRAGGING);
+                        }
+                        else
+                        {
+                            consumed[0] = currentLeft - mOffsetCollapsed;
+                            ViewCompat.offsetLeftAndRight(child, -consumed[0]);
+                            setStateInternal(STATE_COLLAPSED);
+                        }
+                    }
+                    else
+                    {
+                        Log.e(getLogTag(), "*** DEPRECATED *** onNestedPreScroll DOWNWARD moveOffset IGNORED");
+                    }
+                }
+            }
+            mLastNestedScrollDx = dx;
+        }
+        
+        dispatchOnSlide(child.getLeft(),child.getTop());
+        mNestedScrolled = true;
+    }
+    
+    @Override
+    public void onStopNestedScroll(CoordinatorLayout coordinatorLayout, V child, View target)
+    {
+        Log.d(getLogTag(),"onStopNestedScroll ...");
+        if (!mSheetMoveHorizontaly && child.getTop() == mOffsetExpanded)
+        {
+            setStateInternal(STATE_EXPANDED);
+            return;
+        }
+    
+        if (mSheetMoveHorizontaly && child.getLeft() == mOffsetExpanded)
+        {
+            setStateInternal(STATE_EXPANDED);
+            return;
+        }
+        
+        if (mNestedScrollingChildRef == null || target != mNestedScrollingChildRef.get() || !mNestedScrolled)
+        {
+            return;
+        }
+        
+        int top = child.getTop();
+        int left = child.getLeft();
+        int targetState;
+        
+        if(!mSheetMoveHorizontaly)
+        {
+            if(!mSheetHiddenBeforeOrigin)
+            {
+                if (mLastNestedScrollDy > 0)
+                {
+                    top = mOffsetExpanded;
+                    targetState = STATE_EXPANDED;
+                }
+                else if (mHideable && shouldHide(child, getXVelocity(), getYVelocity()))
+                {
+                    top = mOffsetHidden;
+                    targetState = STATE_HIDDEN;
+                }
+                else if (mLastNestedScrollDy == 0)
+                {
+                    int currentTop = child.getTop();
+                    if (Math.abs(currentTop - mOffsetExpanded) < Math.abs(currentTop - mOffsetCollapsed))
+                    {
+                        top = mOffsetExpanded;
+                        targetState = STATE_EXPANDED;
+                    }
+                    else
+                    {
+                        top = mOffsetCollapsed;
+                        targetState = STATE_COLLAPSED;
+                    }
+                }
+                else
+                {
+                    top = mOffsetCollapsed;
+                    targetState = STATE_COLLAPSED;
+                }
+            }
+            else
+            {
+                if (mLastNestedScrollDy < 0)
+                {
+                    top = mOffsetExpanded;
+                    targetState = STATE_EXPANDED;
+                }
+                else if (mHideable && shouldHide(child, getXVelocity(), getYVelocity()))
+                {
+                    top = mOffsetHidden;
+                    targetState = STATE_HIDDEN;
+                }
+                else if (mLastNestedScrollDy == 0)
+                {
+                    int currentTop = child.getTop();
+                    if (Math.abs(currentTop - mOffsetExpanded) < Math.abs(currentTop - mOffsetCollapsed))
+                    {
+                        top = mOffsetExpanded;
+                        targetState = STATE_EXPANDED;
+                    }
+                    else
+                    {
+                        top = mOffsetCollapsed;
+                        targetState = STATE_COLLAPSED;
+                    }
+                }
+                else
+                {
+                    top = mOffsetCollapsed;
+                    targetState = STATE_COLLAPSED;
+                }
+            }
+        }
+        else
+        {
+            if(!mSheetHiddenBeforeOrigin)
+            {
+                if (mLastNestedScrollDx > 0)
+                {
+                    left = mOffsetExpanded;
+                    targetState = STATE_EXPANDED;
+                }
+                else if (mHideable && shouldHide(child, getXVelocity(), getYVelocity()))
+                {
+                    left = mOffsetHidden;
+                    targetState = STATE_HIDDEN;
+                }
+                else if (mLastNestedScrollDx == 0)
+                {
+                    int currentLeft = child.getLeft();
+                    if (Math.abs(currentLeft - mOffsetExpanded) < Math.abs(currentLeft - mOffsetCollapsed))
+                    {
+                        left = mOffsetExpanded;
+                        targetState = STATE_EXPANDED;
+                    }
+                    else
+                    {
+                        left = mOffsetCollapsed;
+                        targetState = STATE_COLLAPSED;
+                    }
+                }
+                else
+                {
+                    left = mOffsetCollapsed;
+                    targetState = STATE_COLLAPSED;
+                }
+            }
+            else
+            {
+                if (mLastNestedScrollDx < 0)
+                {
+                    left = mOffsetExpanded;
+                    targetState = STATE_EXPANDED;
+                }
+                else if (mHideable && shouldHide(child, getXVelocity(), getYVelocity()))
+                {
+                    left = mOffsetHidden;
+                    targetState = STATE_HIDDEN;
+                }
+                else if (mLastNestedScrollDx == 0)
+                {
+                    int currentLeft = child.getLeft();
+                    if (Math.abs(currentLeft - mOffsetExpanded) < Math.abs(currentLeft - mOffsetCollapsed))
+                    {
+                        left = mOffsetExpanded;
+                        targetState = STATE_EXPANDED;
+                    }
+                    else
+                    {
+                        left = mOffsetCollapsed;
+                        targetState = STATE_COLLAPSED;
+                    }
+                }
+                else
+                {
+                    left = mOffsetCollapsed;
+                    targetState = STATE_COLLAPSED;
+                }
+            }
+        }
+        
+        if (mViewDragHelper.smoothSlideViewTo(child, left, top))
+        {
+            setStateInternal(STATE_SETTLING);
+            ViewCompat.postOnAnimation(child, new SheetBehavior.SettleRunnable(child, targetState));
+        }
+        else
+        {
+            setStateInternal(targetState);
+        }
+        mNestedScrolled = false;
+    }
+    
+    @Override
+    public boolean onNestedPreFling(CoordinatorLayout coordinatorLayout, V child, View target, float velocityX, float velocityY)
+    {
+        Log.d(getLogTag(),"onNestedPreFling velocityX [" + velocityX + "] velocityY [" + velocityY + "]");
+        return target == mNestedScrollingChildRef.get() && (mState != STATE_EXPANDED || super.onNestedPreFling(coordinatorLayout, child, target, velocityX, velocityY));
     }
 }
